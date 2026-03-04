@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: springboot-container
-        image: sivacontaineracr98765.azurecr.io/aksdemo:v1
+        image:  tejaacr.azurecr.io/aksdemo:v1
         ports:
         - containerPort: 8080
