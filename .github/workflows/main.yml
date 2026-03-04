@@ -1,0 +1,41 @@
+name: Build and Deploy to AKS
+
+on:
+  push:
+    branches:
+      - main  # Run workflow on every push to main branch
+
+env:
+  ACR_NAME: tejaacr                 # Your ACR name
+  AKS_CLUSTER_NAME: teja-aks-cluster
+  AKS_RESOURCE_GROUP: teja-devops-rg
+  IMAGE_NAME: aksdemo              # Docker image name
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Login to Azure Container Registry
+      run: az acr login --name $ACR_NAME
+
+    - name: Build and Push Docker Image
+      run: |
+        docker build -t $ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }} .
+        docker push $ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }}
+
+    - name: Set AKS Context
+      run: az aks get-credentials --resource-group $AKS_RESOURCE_GROUP --name $AKS_CLUSTER_NAME
+
+    - name: Deploy to AKS
+      run: |
+        kubectl set image deployment/springboot-app \
+        springboot-container=$ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }}
