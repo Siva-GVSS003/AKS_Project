@@ -3,39 +3,66 @@ name: Build and Deploy to AKS
 on:
   push:
     branches:
-      - main  # Run workflow on every push to main branch
+      - main
 
 env:
-  ACR_NAME: tejaacr                 # Your ACR name
+  ACR_NAME: tejaacr
   AKS_CLUSTER_NAME: teja-aks-cluster
   AKS_RESOURCE_GROUP: teja-devops-rg
-  IMAGE_NAME: aksdemo              # Docker image name
+  IMAGE_NAME: aksdemo
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
+    # 1️⃣ Checkout source code
     - name: Checkout Code
       uses: actions/checkout@v3
 
+    # 2️⃣ Setup Java 17 (Required for Spring Boot)
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    # 3️⃣ Build JAR using Maven (VERY IMPORTANT)
+    - name: Build with Maven
+      run: mvn clean package -DskipTests
+
+    # 4️⃣ Login to Azure
     - name: Login to Azure
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+    # 5️⃣ Login to Azure Container Registry
     - name: Login to Azure Container Registry
       run: az acr login --name $ACR_NAME
 
-    - name: Build and Push Docker Image
+    # 6️⃣ Build Docker Image
+    - name: Build Docker Image
       run: |
         docker build -t $ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }} .
+
+    # 7️⃣ Push Docker Image
+    - name: Push Docker Image
+      run: |
         docker push $ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }}
 
+    # 8️⃣ Get AKS Credentials
     - name: Set AKS Context
-      run: az aks get-credentials --resource-group $AKS_RESOURCE_GROUP --name $AKS_CLUSTER_NAME
+      run: |
+        az aks get-credentials \
+          --resource-group $AKS_RESOURCE_GROUP \
+          --name $AKS_CLUSTER_NAME \
+          --overwrite-existing
 
+    # 9️⃣ Deploy to AKS (Rolling Update)
     - name: Deploy to AKS
       run: |
         kubectl set image deployment/springboot-app \
         springboot-container=$ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }}
+
+        kubectl rollout status deployment/springboot-app
