@@ -1,4 +1,4 @@
-package com.siva.aksdemo;
+package com.teja.aksdemo;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -8,6 +8,6 @@ public class HelloController {
 
     @GetMapping("/")
     public String hello() {
-        return "Hello Siva 🚀 Deployed to AKS Successfully!";
+        return "Hello Tejaswi Take care of siva 🚀 Deployed to AKS Successfully!";
     }
 }

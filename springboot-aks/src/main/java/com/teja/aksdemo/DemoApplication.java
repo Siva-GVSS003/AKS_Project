@@ -1,4 +1,4 @@
-package com.siva.aksdemo;
+package com.teja.aksdemo;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
