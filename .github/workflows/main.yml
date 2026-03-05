@@ -65,4 +65,4 @@ jobs:
         kubectl set image deployment/springboot-app \
         springboot-container=$ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }}
 
-        kubectl rollout status deployment/springboot-app
+         kubectl rollout status deployment/springboot-app -n backend
