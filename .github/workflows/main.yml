@@ -10,6 +10,7 @@ env:
   AKS_CLUSTER_NAME: teja-aks-cluster
   AKS_RESOURCE_GROUP: teja-devops-rg
   IMAGE_NAME: aksdemo
+  NAMESPACE: backend   # <-- added a variable for namespace
 
 jobs:
   build-and-deploy:
@@ -27,7 +28,7 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    # 3️⃣ Build JAR using Maven (VERY IMPORTANT)
+    # 3️⃣ Build JAR using Maven
     - name: Build with Maven
       run: mvn clean package -DskipTests
 
@@ -38,7 +39,7 @@ jobs:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
     # 5️⃣ Login to Azure Container Registry
-    - name: Login to Azure Container Registry
+    - name: Login to ACR
       run: az acr login --name $ACR_NAME
 
     # 6️⃣ Build Docker Image
@@ -63,7 +64,7 @@ jobs:
     - name: Deploy to AKS
       run: |
         kubectl set image deployment/springboot-app \
-        springboot-container=$ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }} \
-          -n backend
+          springboot-container=$ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }} \
+          -n $NAMESPACE
 
-         kubectl rollout status deployment/springboot-app -n backend
+        kubectl rollout status deployment/springboot-app -n $NAMESPACE
