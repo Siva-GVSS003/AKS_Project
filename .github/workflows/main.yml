@@ -105,13 +105,13 @@ jobs:
         kubectl apply -f ./ingress.yaml        # ingress for routing
 
         # 2️⃣ Update container images
-        kubectl set image deployment/springboot-app springboot-container=$ACR_NAME.azurecr.io/aksdemo:${{ github.sha }}
+        kubectl set image deployment/springboot-app springboot-container=$ACR_NAME.azurecr.io/aksdemo:${{ github.sha }} -n backend
         kubectl set image deployment/user-service user-container=$ACR_NAME.azurecr.io/user-service:${{ github.sha }}
         kubectl set image deployment/order-service order-container=$ACR_NAME.azurecr.io/order-service:${{ github.sha }}
         kubectl set image deployment/payment-service payment-container=$ACR_NAME.azurecr.io/payment-service:${{ github.sha }}
 
         # 3️⃣ Wait for rollouts
-        kubectl rollout status deployment/springboot-app
+        kubectl rollout status deployment/springboot-app -n backend
         kubectl rollout status deployment/user-service
         kubectl rollout status deployment/order-service
         kubectl rollout status deployment/payment-service
