@@ -53,7 +53,7 @@ jobs:
 
     - name: Build User Service
       run: |
-        cd microservices/user-service
+        cd AKS_Project/microservices/user-service
         mvn clean package -DskipTests
         docker build -t $ACR_NAME.azurecr.io/user-service:${{ github.sha }} .
         docker push $ACR_NAME.azurecr.io/user-service:${{ github.sha }}
@@ -64,7 +64,7 @@ jobs:
 
     - name: Build Order Service
       run: |
-        cd microservices/order-service
+        cd AKS_Project/microservices/order-service
         mvn clean package -DskipTests
         docker build -t $ACR_NAME.azurecr.io/order-service:${{ github.sha }} .
         docker push $ACR_NAME.azurecr.io/order-service:${{ github.sha }}
@@ -75,7 +75,7 @@ jobs:
 
     - name: Build Payment Service
       run: |
-        cd microservices/payment-service
+        cd AKS_Project/microservices/payment-service
         mvn clean package -DskipTests
         docker build -t $ACR_NAME.azurecr.io/payment-service:${{ github.sha }} .
         docker push $ACR_NAME.azurecr.io/payment-service:${{ github.sha }}
