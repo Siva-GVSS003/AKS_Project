@@ -100,7 +100,7 @@ jobs:
         kubectl apply -f microservices/user-service/
         kubectl apply -f microservices/order-service/
         kubectl apply -f microservices/payment-service/
-        kubectl apply -f ./deployment.yaml     # springboot-app deployment
+        kubectl apply -f ./deployment.yaml -n backend    # springboot-app deployment
         kubectl apply -f ./service.yaml        # springboot-app service
         kubectl apply -f ./ingress.yaml        # ingress for routing
 
