@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class OrderController {
 
-    @GetMapping("/orders")
+    @GetMapping("/order")
     public String orders(){
         return "Order Service Running in AKS 🚀";
     }

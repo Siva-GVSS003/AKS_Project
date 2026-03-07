@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class PaymentController {
 
-    @GetMapping("/payments")
+    @GetMapping("/payment")
     public String payments(){
         return "Payment Service Running in AKS 🚀";
     }

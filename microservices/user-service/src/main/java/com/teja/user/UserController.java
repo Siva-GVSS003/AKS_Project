@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class UserController {
 
-    @GetMapping("/users")
+    @GetMapping("/user")
     public String users(){
         return "User Service Running in AKS 🚀";
     }
