@@ -44,7 +44,7 @@ jobs:
 ################################################
 
     - name: Build User Service
-      working-directory: AKS_Project/microservices/user-service
+      working-directory: microservices/user-service
       run: |
         cd microservices/user-service
         mvn clean package -DskipTests
@@ -56,7 +56,7 @@ jobs:
 ################################################
 
     - name: Build Order Service
-      working-directory: AKS_Project/microservices/order-service
+      working-directory: microservices/order-service
       run: |
         
         mvn clean package -DskipTests
@@ -68,7 +68,7 @@ jobs:
 ################################################
 
     - name: Build Payment Service
-      working-directory: AKS_Project/microservices/payment-service
+      working-directory: microservices/payment-service
       run: |
        
         mvn clean package -DskipTests
