@@ -46,7 +46,7 @@ jobs:
     - name: Build User Service
       working-directory: microservices/user-service
       run: |
-        cd microservices/user-service
+        
         mvn clean package -DskipTests
         docker build -t $ACR_NAME.azurecr.io/user-service:${{ github.sha }} .
         docker push $ACR_NAME.azurecr.io/user-service:${{ github.sha }}
