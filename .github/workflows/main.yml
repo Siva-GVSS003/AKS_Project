@@ -1,4 +1,4 @@
-name: Build and Deploy to AKS
+name: Build and Deploy Applications to AKS
 
 on:
   push:
@@ -9,50 +9,81 @@ env:
   ACR_NAME: tejaacr
   AKS_CLUSTER_NAME: teja-aks-cluster
   AKS_RESOURCE_GROUP: teja-devops-rg
-  IMAGE_NAME: aksdemo
-  NAMESPACE: backend   # <-- added a variable for namespace
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-    # 1️⃣ Checkout source code
+
+    # Checkout Code
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    # 2️⃣ Setup Java 17 (Required for Spring Boot)
+    # Setup Java
     - name: Set up JDK 17
       uses: actions/setup-java@v3
       with:
-        distribution: 'temurin'
-        java-version: '17'
+        distribution: temurin
+        java-version: 17
 
-    # 3️⃣ Build JAR using Maven
-    - name: Build with Maven
-      run: mvn clean package -DskipTests
-
-    # 4️⃣ Login to Azure
+    # Login Azure
     - name: Login to Azure
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    # 5️⃣ Login to Azure Container Registry
-    - name: Login to ACR
+    # Login to ACR
+    - name: Login to Azure Container Registry
       run: az acr login --name $ACR_NAME
 
-    # 6️⃣ Build Docker Image
-    - name: Build Docker Image
-      run: |
-        docker build -t $ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }} .
+################################################
+# BUILD MONOLITH SPRING BOOT APP
+################################################
 
-    # 7️⃣ Push Docker Image
-    - name: Push Docker Image
+    - name: Build SpringBoot Monolith
       run: |
-        docker push $ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }}
+        mvn clean package -DskipTests
+        docker build -t $ACR_NAME.azurecr.io/aksdemo:${{ github.sha }} .
+        docker push $ACR_NAME.azurecr.io/aksdemo:${{ github.sha }}
 
-    # 8️⃣ Get AKS Credentials
+################################################
+# BUILD USER SERVICE
+################################################
+
+    - name: Build User Service
+      run: |
+        cd microservices/user-service
+        mvn clean package -DskipTests
+        docker build -t $ACR_NAME.azurecr.io/user-service:${{ github.sha }} .
+        docker push $ACR_NAME.azurecr.io/user-service:${{ github.sha }}
+
+################################################
+# BUILD ORDER SERVICE
+################################################
+
+    - name: Build Order Service
+      run: |
+        cd microservices/order-service
+        mvn clean package -DskipTests
+        docker build -t $ACR_NAME.azurecr.io/order-service:${{ github.sha }} .
+        docker push $ACR_NAME.azurecr.io/order-service:${{ github.sha }}
+
+################################################
+# BUILD PAYMENT SERVICE
+################################################
+
+    - name: Build Payment Service
+      run: |
+        cd microservices/payment-service
+        mvn clean package -DskipTests
+        docker build -t $ACR_NAME.azurecr.io/payment-service:${{ github.sha }} .
+        docker push $ACR_NAME.azurecr.io/payment-service:${{ github.sha }}
+
+################################################
+# CONNECT AKS
+################################################
+
     - name: Set AKS Context
       run: |
         az aks get-credentials \
@@ -60,11 +91,21 @@ jobs:
           --name $AKS_CLUSTER_NAME \
           --overwrite-existing
 
-    # 9️⃣ Deploy to AKS (Rolling Update)
+################################################
+# DEPLOY APPLICATIONS
+################################################
+
     - name: Deploy to AKS
       run: |
-        kubectl set image deployment/springboot-app \
-          springboot-container=$ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }} \
-          -n $NAMESPACE
+        kubectl set image deployment/springboot-app springboot-container=$ACR_NAME.azurecr.io/aksdemo:${{ github.sha }}
 
-        kubectl rollout status deployment/springboot-app -n $NAMESPACE
+        kubectl set image deployment/user-service user-container=$ACR_NAME.azurecr.io/user-service:${{ github.sha }}
+
+        kubectl set image deployment/order-service order-container=$ACR_NAME.azurecr.io/order-service:${{ github.sha }}
+
+        kubectl set image deployment/payment-service payment-container=$ACR_NAME.azurecr.io/payment-service:${{ github.sha }}
+
+        kubectl rollout status deployment/springboot-app
+        kubectl rollout status deployment/user-service
+        kubectl rollout status deployment/order-service
+        kubectl rollout status deployment/payment-service
