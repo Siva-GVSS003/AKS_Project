@@ -1,117 +1,61 @@
-name: Build and Deploy Applications to AKS
+name: Debug Repo Structure
 
 on:
   push:
     branches:
       - main
 
-env:
-  ACR_NAME: tejaacr
-  AKS_CLUSTER_NAME: teja-aks-cluster
-  AKS_RESOURCE_GROUP: teja-devops-rg
-
 jobs:
-  build-and-deploy:
+  debug:
     runs-on: ubuntu-latest
 
     steps:
+      ###############################
+      # 1️⃣ Checkout Code
+      ###############################
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # full repo history
 
-    ###############################
-    # 1️⃣ Checkout Code
-    ###############################
-    - name: Checkout Code
-      uses: actions/checkout@v3
-      # no path here! let it checkout to default workspace root
+      ###############################
+      # 2️⃣ Print working directory
+      ###############################
+      - name: Print current working directory
+        run: pwd
 
-    # Optional debug
-    - name: Show repo structure
-      run: |
-        pwd
-        ls -R
+      ###############################
+      # 3️⃣ List all files recursively
+      ###############################
+      - name: List all files recursively
+        run: ls -R
 
-    ###############################
-    # 2️⃣ Setup Java 17
-    ###############################
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        distribution: temurin
-        java-version: 17
+      ###############################
+      # 4️⃣ Test cd into microservices/user-service
+      ###############################
+      - name: Test cd into User Service
+        run: |
+          echo "Trying to cd into microservices/user-service"
+          cd microservices/user-service || echo "Folder not found!"
+          pwd
+          ls
 
-    ###############################
-    # 3️⃣ Login Azure
-    ###############################
-    - name: Login to Azure
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+      ###############################
+      # 5️⃣ Test cd into Order Service
+      ###############################
+      - name: Test cd into Order Service
+        run: |
+          echo "Trying to cd into microservices/order-service"
+          cd microservices/order-service || echo "Folder not found!"
+          pwd
+          ls
 
-    ###############################
-    # 4️⃣ Login to ACR
-    ###############################
-    - name: Login to Azure Container Registry
-      run: az acr login --name $ACR_NAME
-
-    ###############################
-    # 5️⃣ Build & Push User Service
-    ###############################
-    - name: Build User Service
-      working-directory: AKS_Project/microservices/user-service
-      run: |
-        mvn clean package -DskipTests
-        docker build -t $ACR_NAME.azurecr.io/user-service:${{ github.sha }} .
-        docker push $ACR_NAME.azurecr.io/user-service:${{ github.sha }}
-
-    ###############################
-    # 6️⃣ Build & Push Order Service
-    ###############################
-    - name: Build Order Service
-      working-directory: AKS_Project/microservices/order-service
-      run: |
-        mvn clean package -DskipTests
-        docker build -t $ACR_NAME.azurecr.io/order-service:${{ github.sha }} .
-        docker push $ACR_NAME.azurecr.io/order-service:${{ github.sha }}
-
-    ###############################
-    # 7️⃣ Build & Push Payment Service
-    ###############################
-    - name: Build Payment Service
-      working-directory: AKS_Project/microservices/payment-service
-      run: |
-        mvn clean package -DskipTests
-        docker build -t $ACR_NAME.azurecr.io/payment-service:${{ github.sha }} .
-        docker push $ACR_NAME.azurecr.io/payment-service:${{ github.sha }}
-
-    ###############################
-    # 8️⃣ Build & Push Monolith SpringBoot App
-    ###############################
-    - name: Build SpringBoot Monolith
-      working-directory: AKS_Project
-      run: |
-        mvn clean package -DskipTests
-        docker build -t $ACR_NAME.azurecr.io/aksdemo:${{ github.sha }} .
-        docker push $ACR_NAME.azurecr.io/aksdemo:${{ github.sha }}
-
-    ###############################
-    # 9️⃣ Connect to AKS
-    ###############################
-    - name: Set AKS Context
-      run: |
-        az aks get-credentials \
-          --resource-group $AKS_RESOURCE_GROUP \
-          --name $AKS_CLUSTER_NAME \
-          --overwrite-existing
-
-    ###############################
-    # 🔟 Deploy Applications to AKS
-    ###############################
-    - name: Deploy to AKS
-      run: |
-        kubectl set image deployment/springboot-app springboot-container=$ACR_NAME.azurecr.io/aksdemo:${{ github.sha }}
-        kubectl set image deployment/user-service user-container=$ACR_NAME.azurecr.io/user-service:${{ github.sha }}
-        kubectl set image deployment/order-service order-container=$ACR_NAME.azurecr.io/order-service:${{ github.sha }}
-        kubectl set image deployment/payment-service payment-container=$ACR_NAME.azurecr.io/payment-service:${{ github.sha }}
-        kubectl rollout status deployment/springboot-app
-        kubectl rollout status deployment/user-service
-        kubectl rollout status deployment/order-service
-        kubectl rollout status deployment/payment-service
+      ###############################
+      # 6️⃣ Test cd into Payment Service
+      ###############################
+      - name: Test cd into Payment Service
+        run: |
+          echo "Trying to cd into microservices/payment-service"
+          cd microservices/payment-service || echo "Folder not found!"
+          pwd
+          ls
