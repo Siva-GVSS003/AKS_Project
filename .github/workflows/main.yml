@@ -15,14 +15,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
     ###############################
     # 1️⃣ Checkout Code
     ###############################
     - name: Checkout Code
       uses: actions/checkout@v3
-      with:
-        path: .   # Ensures repo is checked out to workspace root
+
+    # Optional: debug repo structure
+    - name: List repo files
+      run: ls -R
 
     ###############################
     # 2️⃣ Setup Java 17
@@ -51,7 +52,7 @@ jobs:
     # 5️⃣ Build & Push User Service
     ###############################
     - name: Build User Service
-      working-directory: ./microservices/user-service
+      working-directory: microservices/user-service
       run: |
         mvn clean package -DskipTests
         docker build -t $ACR_NAME.azurecr.io/user-service:${{ github.sha }} .
@@ -61,7 +62,7 @@ jobs:
     # 6️⃣ Build & Push Order Service
     ###############################
     - name: Build Order Service
-      working-directory: ./microservices/order-service
+      working-directory: microservices/order-service
       run: |
         mvn clean package -DskipTests
         docker build -t $ACR_NAME.azurecr.io/order-service:${{ github.sha }} .
@@ -71,7 +72,7 @@ jobs:
     # 7️⃣ Build & Push Payment Service
     ###############################
     - name: Build Payment Service
-      working-directory: ./microservices/payment-service
+      working-directory: microservices/payment-service
       run: |
         mvn clean package -DskipTests
         docker build -t $ACR_NAME.azurecr.io/payment-service:${{ github.sha }} .
@@ -81,7 +82,7 @@ jobs:
     # 8️⃣ Build & Push Monolith SpringBoot App
     ###############################
     - name: Build SpringBoot Monolith
-      working-directory: AKS_Project
+      working-directory: .
       run: |
         mvn clean package -DskipTests
         docker build -t $ACR_NAME.azurecr.io/aksdemo:${{ github.sha }} .
@@ -98,17 +99,16 @@ jobs:
           --overwrite-existing
 
     ###############################
-    # 🔟 Deploy to AKS
+    # 🔟 Deploy Applications to AKS
     ###############################
     - name: Deploy to AKS
       run: |
-        # Update deployments with new image tags
         kubectl set image deployment/springboot-app springboot-container=$ACR_NAME.azurecr.io/aksdemo:${{ github.sha }}
         kubectl set image deployment/user-service user-container=$ACR_NAME.azurecr.io/user-service:${{ github.sha }}
         kubectl set image deployment/order-service order-container=$ACR_NAME.azurecr.io/order-service:${{ github.sha }}
         kubectl set image deployment/payment-service payment-container=$ACR_NAME.azurecr.io/payment-service:${{ github.sha }}
 
-        # Wait for all rollouts to complete
+        # Wait for all rollouts
         kubectl rollout status deployment/springboot-app
         kubectl rollout status deployment/user-service
         kubectl rollout status deployment/order-service
