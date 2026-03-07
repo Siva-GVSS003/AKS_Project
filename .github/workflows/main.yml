@@ -20,16 +20,24 @@ jobs:
     ###############################
     - name: Checkout Code
       uses: actions/checkout@v3
-
-    # Optional: debug repo structure
-    - name: List repo files
-      run: |
-        echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
-        pwd
-        ls -R $GITHUB_WORKSPACE
+      with:
+        fetch-depth: 1   # shallow clone for speed
 
     ###############################
-    # 2️⃣ Setup Java 17
+    # 2️⃣ Debug: Verify repo structure
+    ###############################
+    - name: Debug repo structure
+      run: |
+        echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+        pwd
+        ls -l
+        ls -l microservices
+        ls -l microservices/user-service
+        ls -l microservices/order-service
+        ls -l microservices/payment-service
+
+    ###############################
+    # 3️⃣ Setup Java 17
     ###############################
     - name: Set up JDK 17
       uses: actions/setup-java@v3
@@ -38,7 +46,7 @@ jobs:
         java-version: 17
 
     ###############################
-    # 3️⃣ Login to Azure
+    # 4️⃣ Login to Azure
     ###############################
     - name: Login to Azure
       uses: azure/login@v1
@@ -46,53 +54,63 @@ jobs:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
     ###############################
-    # 4️⃣ Login to ACR
+    # 5️⃣ Login to Azure Container Registry
     ###############################
-    - name: Login to Azure Container Registry
+    - name: Login to ACR
       run: az acr login --name $ACR_NAME
 
     ###############################
-    # 5️⃣ Build & Push User Service
+    # 6️⃣ Build & Push User Service
     ###############################
-    - name: Build User Service
+    - name: Build & Push User Service
       working-directory: microservices/user-service
       run: |
+        echo "Current directory:"
+        pwd
+        echo "Contents:"
+        ls -l
         mvn clean package -DskipTests
         docker build -t $ACR_NAME.azurecr.io/user-service:${{ github.sha }} .
         docker push $ACR_NAME.azurecr.io/user-service:${{ github.sha }}
 
     ###############################
-    # 6️⃣ Build & Push Order Service
+    # 7️⃣ Build & Push Order Service
     ###############################
-    - name: Build Order Service
+    - name: Build & Push Order Service
       working-directory: microservices/order-service
       run: |
+        pwd
+        ls -l
         mvn clean package -DskipTests
         docker build -t $ACR_NAME.azurecr.io/order-service:${{ github.sha }} .
         docker push $ACR_NAME.azurecr.io/order-service:${{ github.sha }}
 
     ###############################
-    # 7️⃣ Build & Push Payment Service
+    # 8️⃣ Build & Push Payment Service
     ###############################
-    - name: Build Payment Service
+    - name: Build & Push Payment Service
       working-directory: microservices/payment-service
       run: |
+        pwd
+        ls -l
         mvn clean package -DskipTests
         docker build -t $ACR_NAME.azurecr.io/payment-service:${{ github.sha }} .
         docker push $ACR_NAME.azurecr.io/payment-service:${{ github.sha }}
 
     ###############################
-    # 8️⃣ Build & Push Monolith SpringBoot App
+    # 9️⃣ Build & Push SpringBoot Monolith
     ###############################
-    - name: Build SpringBoot Monolith
-      working-directory: ${{ github.workspace }}
+    - name: Build & Push SpringBoot Monolith
+      working-directory: .
       run: |
+        pwd
+        ls -l
         mvn clean package -DskipTests
         docker build -t $ACR_NAME.azurecr.io/aksdemo:${{ github.sha }} .
         docker push $ACR_NAME.azurecr.io/aksdemo:${{ github.sha }}
 
     ###############################
-    # 9️⃣ Connect to AKS
+    # 🔟 Connect to AKS
     ###############################
     - name: Set AKS Context
       run: |
@@ -102,7 +120,7 @@ jobs:
           --overwrite-existing
 
     ###############################
-    # 🔟 Deploy Applications to AKS
+    # 1️⃣1️⃣ Deploy Applications to AKS
     ###############################
     - name: Deploy to AKS
       run: |
@@ -110,6 +128,7 @@ jobs:
         kubectl set image deployment/user-service user-container=$ACR_NAME.azurecr.io/user-service:${{ github.sha }}
         kubectl set image deployment/order-service order-container=$ACR_NAME.azurecr.io/order-service:${{ github.sha }}
         kubectl set image deployment/payment-service payment-container=$ACR_NAME.azurecr.io/payment-service:${{ github.sha }}
+
         # Wait for all rollouts
         kubectl rollout status deployment/springboot-app
         kubectl rollout status deployment/user-service
