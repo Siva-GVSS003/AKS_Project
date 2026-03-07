@@ -37,15 +37,7 @@ jobs:
     - name: Login to Azure Container Registry
       run: az acr login --name $ACR_NAME
 
-################################################
-# BUILD MONOLITH SPRING BOOT APP
-################################################
 
-    - name: Build SpringBoot Monolith
-      run: |
-        mvn clean package -DskipTests
-        docker build -t $ACR_NAME.azurecr.io/aksdemo:${{ github.sha }} .
-        docker push $ACR_NAME.azurecr.io/aksdemo:${{ github.sha }}
 
 ################################################
 # BUILD USER SERVICE
@@ -53,7 +45,7 @@ jobs:
 
     - name: Build User Service
       run: |
-        cd AKS_Project/microservices/user-service
+        cd microservices/user-service
         mvn clean package -DskipTests
         docker build -t $ACR_NAME.azurecr.io/user-service:${{ github.sha }} .
         docker push $ACR_NAME.azurecr.io/user-service:${{ github.sha }}
@@ -64,7 +56,7 @@ jobs:
 
     - name: Build Order Service
       run: |
-        cd AKS_Project/microservices/order-service
+        cd microservices/order-service
         mvn clean package -DskipTests
         docker build -t $ACR_NAME.azurecr.io/order-service:${{ github.sha }} .
         docker push $ACR_NAME.azurecr.io/order-service:${{ github.sha }}
@@ -75,11 +67,20 @@ jobs:
 
     - name: Build Payment Service
       run: |
-        cd AKS_Project/microservices/payment-service
+        cd microservices/payment-service
         mvn clean package -DskipTests
         docker build -t $ACR_NAME.azurecr.io/payment-service:${{ github.sha }} .
         docker push $ACR_NAME.azurecr.io/payment-service:${{ github.sha }}
 
+################################################
+# BUILD MONOLITH SPRING BOOT APP
+################################################
+
+    - name: Build SpringBoot Monolith
+      run: |
+        mvn clean package -DskipTests
+        docker build -t $ACR_NAME.azurecr.io/aksdemo:${{ github.sha }} .
+        docker push $ACR_NAME.azurecr.io/aksdemo:${{ github.sha }}
 ################################################
 # CONNECT AKS
 ################################################
