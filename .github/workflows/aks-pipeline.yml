@@ -1,0 +1,45 @@
+name: AKS CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  ACR_NAME: tejaacr
+  AKS_CLUSTER_NAME: teja-aks-cluster
+  AKS_RESOURCE_GROUP: teja-devops-rg
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v3
+
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: temurin
+        java-version: 17
+
+    - name: Build services
+      run: |
+        cd microservices/user-service
+        mvn clean package -DskipTests
+
+  docker:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Login ACR
+      run: az acr login --name $ACR_NAME
