@@ -6,7 +6,6 @@ on:
       - develop
       - qa
       - staging
-      - main
 
 env:
   ACR_NAME: tejaacr
