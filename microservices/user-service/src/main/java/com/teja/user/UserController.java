@@ -8,7 +8,7 @@ public class UserController {
 
     @GetMapping("/user")
     public String users(){
-        return "User Service Running in AKS (dev)🚀";
+        return "User Service Running in AKS (develop branch)🚀";
     }
 
 }
