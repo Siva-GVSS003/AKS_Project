@@ -1,24 +1,18 @@
 name: Deploy Production
 
 on:
-  push:
-    branches:
-      - main
-
+  workflow_dispatch:  # manual trigger recommended
 env:
   ACR_NAME: tejaacr
   AKS_CLUSTER_NAME: teja-aks-cluster
   AKS_RESOURCE_GROUP: teja-devops-rg
+  NAMESPACE: prod
 
 jobs:
-
   deploy-prod:
-
     runs-on: ubuntu-latest
-    environment: prod
 
     steps:
-
     - uses: actions/checkout@v3
 
     - name: Login Azure
@@ -29,11 +23,21 @@ jobs:
     - name: Connect AKS
       run: |
         az aks get-credentials \
-        --resource-group $AKS_RESOURCE_GROUP \
-        --name $AKS_CLUSTER_NAME \
-        --overwrite-existing
+          --resource-group $AKS_RESOURCE_GROUP \
+          --name $AKS_CLUSTER_NAME \
+          --overwrite-existing
 
     - name: Deploy to Production
       run: |
-        kubectl set image deployment/user-service \
-        user-container=$ACR_NAME.azurecr.io/user-service:${{ github.sha }} -n prod
+        # Manually enter SHA or latest tested SHA from pre-prod
+        SHA=<sha-from-preprod>
+        kubectl set image deployment/user-service user-container=$ACR_NAME.azurecr.io/user-service:$SHA -n $NAMESPACE
+        kubectl set image deployment/order-service order-container=$ACR_NAME.azurecr.io/order-service:$SHA -n $NAMESPACE
+        kubectl set image deployment/payment-service payment-container=$ACR_NAME.azurecr.io/payment-service:$SHA -n $NAMESPACE
+        kubectl set image deployment/springboot-app springboot-container=$ACR_NAME.azurecr.io/aksdemo:$SHA -n $NAMESPACE
+
+        # Wait for rollouts
+        kubectl rollout status deployment/user-service -n $NAMESPACE
+        kubectl rollout status deployment/order-service -n $NAMESPACE
+        kubectl rollout status deployment/payment-service -n $NAMESPACE
+        kubectl rollout status deployment/springboot-app -n $NAMESPACE
