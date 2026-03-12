@@ -49,7 +49,10 @@ jobs:
     steps:
 
     - name: Deploy QA
-      run: echo "Deploying to QA environment"
+      run: |
+        kubectl set image deployment/user-service \
+        user-container=$ACR_NAME.azurecr.io/user-service:${{ github.sha }} -n qa
+
 
 ########################################################
 
@@ -61,4 +64,7 @@ jobs:
     steps:
 
     - name: Deploy STAGING
-      run: echo "Deploying to staging"
+      run: |
+        kubectl set image deployment/user-service \
+        user-container=$ACR_NAME.azurecr.io/user-service:${{ github.sha }} -n staging
+
