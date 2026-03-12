@@ -13,67 +13,84 @@ env:
 
 jobs:
   build-and-push:
-
     runs-on: ubuntu-latest
 
     steps:
 
+    ###############################
+    # 1️⃣ Checkout Code
+    ###############################
     - name: Checkout Code
       uses: actions/checkout@v3
 
+    ###############################
+    # 2️⃣ Setup Java 17
+    ###############################
     - name: Setup Java
       uses: actions/setup-java@v3
       with:
         distribution: temurin
         java-version: 17
 
+    ###############################
+    # 3️⃣ Login Azure
+    ###############################
     - name: Login Azure
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+    ###############################
+    # 4️⃣ Login to ACR
+    ###############################
     - name: Login ACR
       run: az acr login --name $ACR_NAME
 
-########################################
-# USER SERVICE
-########################################
-
+    ########################################
+    # USER SERVICE
+    ########################################
     - name: Build & Push User Service
       working-directory: microservices/user-service
       run: |
         mvn clean package -DskipTests
         docker build -t $ACR_NAME.azurecr.io/user-service:${{ github.sha }} .
         docker push $ACR_NAME.azurecr.io/user-service:${{ github.sha }}
+        # Tag as latest for dev deployments
+        docker tag $ACR_NAME.azurecr.io/user-service:${{ github.sha }} $ACR_NAME.azurecr.io/user-service:latest
+        docker push $ACR_NAME.azurecr.io/user-service:latest
 
-########################################
-# ORDER SERVICE
-########################################
-
+    ########################################
+    # ORDER SERVICE
+    ########################################
     - name: Build & Push Order Service
       working-directory: microservices/order-service
       run: |
         mvn clean package -DskipTests
         docker build -t $ACR_NAME.azurecr.io/order-service:${{ github.sha }} .
         docker push $ACR_NAME.azurecr.io/order-service:${{ github.sha }}
+        docker tag $ACR_NAME.azurecr.io/order-service:${{ github.sha }} $ACR_NAME.azurecr.io/order-service:latest
+        docker push $ACR_NAME.azurecr.io/order-service:latest
 
-########################################
-# PAYMENT SERVICE
-########################################
-
+    ########################################
+    # PAYMENT SERVICE
+    ########################################
     - name: Build & Push Payment Service
       working-directory: microservices/payment-service
       run: |
         mvn clean package -DskipTests
         docker build -t $ACR_NAME.azurecr.io/payment-service:${{ github.sha }} .
         docker push $ACR_NAME.azurecr.io/payment-service:${{ github.sha }}
+        docker tag $ACR_NAME.azurecr.io/payment-service:${{ github.sha }} $ACR_NAME.azurecr.io/payment-service:latest
+        docker push $ACR_NAME.azurecr.io/payment-service:latest
 
-########################################
-# SPRINGBOOT MONOLITH
-########################################
-
-    - name: Build & Push SpringBoot App
+    ########################################
+    # SPRINGBOOT MONOLITH
+    ########################################
+    - name: Build & Push SpringBoot Monolith
+      working-directory: .
       run: |
         mvn clean package -DskipTests
         docker build -t $ACR_NAME.azurecr.io/aksdemo:${{ github.sha }} .
         docker push $ACR_NAME.azurecr.io/aksdemo:${{ github.sha }}
+        docker tag $ACR_NAME.azurecr.io/aksdemo:${{ github.sha }} $ACR_NAME.azurecr.io/aksdemo:latest
+        docker push $ACR_NAME.azurecr.io/aksdemo:latest
