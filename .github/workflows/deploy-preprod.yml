@@ -1,0 +1,64 @@
+name: Deploy PreProd Environments
+
+on:
+  workflow_run:
+    workflows: ["CI Build Pipeline"]
+    types:
+      - completed
+
+env:
+  ACR_NAME: tejaacr
+  AKS_CLUSTER_NAME: teja-aks-cluster
+  AKS_RESOURCE_GROUP: teja-devops-rg
+
+jobs:
+
+  deploy-dev:
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    environment: dev
+
+    steps:
+
+    - uses: actions/checkout@v3
+
+    - name: Login Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Connect AKS
+      run: |
+        az aks get-credentials \
+        --resource-group $AKS_RESOURCE_GROUP \
+        --name $AKS_CLUSTER_NAME \
+        --overwrite-existing
+
+    - name: Deploy to DEV
+      run: |
+        kubectl set image deployment/user-service \
+        user-container=$ACR_NAME.azurecr.io/user-service:${{ github.sha }} -n dev
+
+########################################################
+
+  deploy-qa:
+    if: github.ref == 'refs/heads/qa'
+    runs-on: ubuntu-latest
+    environment: qa
+
+    steps:
+
+    - name: Deploy QA
+      run: echo "Deploying to QA environment"
+
+########################################################
+
+  deploy-staging:
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+
+    - name: Deploy STAGING
+      run: echo "Deploying to staging"
