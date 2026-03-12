@@ -1,0 +1,39 @@
+name: Deploy Production
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  ACR_NAME: tejaacr
+  AKS_CLUSTER_NAME: teja-aks-cluster
+  AKS_RESOURCE_GROUP: teja-devops-rg
+
+jobs:
+
+  deploy-prod:
+
+    runs-on: ubuntu-latest
+    environment: prod
+
+    steps:
+
+    - uses: actions/checkout@v3
+
+    - name: Login Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Connect AKS
+      run: |
+        az aks get-credentials \
+        --resource-group $AKS_RESOURCE_GROUP \
+        --name $AKS_CLUSTER_NAME \
+        --overwrite-existing
+
+    - name: Deploy to Production
+      run: |
+        kubectl set image deployment/user-service \
+        user-container=$ACR_NAME.azurecr.io/user-service:${{ github.sha }} -n prod
