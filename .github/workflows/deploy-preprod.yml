@@ -12,96 +12,44 @@ env:
   AKS_RESOURCE_GROUP: teja-devops-rg
 
 jobs:
-
-########################################################
-# DEV DEPLOYMENT
-########################################################
-
-  deploy-dev:
-    if: github.event.workflow_run.head_branch == 'develop'
+  deploy:
     runs-on: ubuntu-latest
-    environment: dev
+    strategy:
+      matrix:
+        env: [dev, qa, staging]
 
     steps:
-
-    - name: Checkout
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v3
 
     - name: Login Azure
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Connect to AKS
+    - name: Connect AKS
       run: |
         az aks get-credentials \
-        --resource-group $AKS_RESOURCE_GROUP \
-        --name $AKS_CLUSTER_NAME \
-        --overwrite-existing
+          --resource-group $AKS_RESOURCE_GROUP \
+          --name $AKS_CLUSTER_NAME \
+          --overwrite-existing
 
-    - name: Deploy to DEV
+    - name: Deploy to ${{ matrix.env }}
       run: |
-        kubectl set image deployment/user-service \
-        user-container=$ACR_NAME.azurecr.io/user-service:latest -n dev
+        # Use the SHA from the CI workflow that triggered this deploy
+        SHA=${{ github.event.workflow_run.head_sha }}
+        NAMESPACE=${{ matrix.env }}
 
-########################################################
-# QA DEPLOYMENT
-########################################################
+        # Update microservices
+        kubectl apply -R -f microservices
+        kubectl set image deployment/user-service user-container=$ACR_NAME.azurecr.io/user-service:$SHA -n $NAMESPACE
+        kubectl set image deployment/order-service order-container=$ACR_NAME.azurecr.io/order-service:$SHA -n $NAMESPACE
+        kubectl set image deployment/payment-service payment-container=$ACR_NAME.azurecr.io/payment-service:$SHA -n $NAMESPACE
 
-  deploy-qa:
-    if: github.event.workflow_run.head_branch == 'qa'
-    runs-on: ubuntu-latest
-    environment: qa
+        # Update monolith
+        kubectl set image deployment/springboot-app springboot-container=$ACR_NAME.azurecr.io/aksdemo:$SHA -n $NAMESPACE
 
-    steps:
-
-    - name: Checkout
-      uses: actions/checkout@v3
-
-    - name: Login Azure
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-    - name: Connect to AKS
-      run: |
-        az aks get-credentials \
-        --resource-group $AKS_RESOURCE_GROUP \
-        --name $AKS_CLUSTER_NAME \
-        --overwrite-existing
-
-    - name: Deploy to QA
-      run: |
-        kubectl set image deployment/user-service \
-        user-container=$ACR_NAME.azurecr.io/user-service:latest -n qa
-
-########################################################
-# STAGING DEPLOYMENT
-########################################################
-
-  deploy-staging:
-    if: github.event.workflow_run.head_branch == 'staging'
-    runs-on: ubuntu-latest
-    environment: staging
-
-    steps:
-
-    - name: Checkout
-      uses: actions/checkout@v3
-
-    - name: Login Azure
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-    - name: Connect to AKS
-      run: |
-        az aks get-credentials \
-        --resource-group $AKS_RESOURCE_GROUP \
-        --name $AKS_CLUSTER_NAME \
-        --overwrite-existing
-
-    - name: Deploy to STAGING
-      run: |
-        kubectl set image deployment/user-service \
-        user-container=$ACR_NAME.azurecr.io/user-service:latest -n staging
+        # Wait for rollouts
+        kubectl rollout status deployment/user-service -n $NAMESPACE
+        kubectl rollout status deployment/order-service -n $NAMESPACE
+        kubectl rollout status deployment/payment-service -n $NAMESPACE
+        kubectl rollout status deployment/springboot-app -n $NAMESPACE
