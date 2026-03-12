@@ -41,6 +41,9 @@ jobs:
 
         # Update microservices
         kubectl apply -R -f microservices -n $NAMESPACE
+        kubectl apply -f ./deployment.yaml -n $NAMESPACE  # springboot-app deployment
+        kubectl apply -f ./service.yaml -n $NAMESPACE     # springboot-app service
+        kubectl apply -f ./ingress.yaml -n $NAMESPACE     # ingress for routing
         kubectl set image deployment/user-service user-container=$ACR_NAME.azurecr.io/user-service:$SHA -n $NAMESPACE
         kubectl set image deployment/order-service order-container=$ACR_NAME.azurecr.io/order-service:$SHA -n $NAMESPACE
         kubectl set image deployment/payment-service payment-container=$ACR_NAME.azurecr.io/payment-service:$SHA -n $NAMESPACE
