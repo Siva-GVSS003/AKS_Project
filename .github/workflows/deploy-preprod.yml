@@ -13,21 +13,26 @@ env:
 
 jobs:
 
+########################################################
+# DEV DEPLOYMENT
+########################################################
+
   deploy-dev:
-    if: github.ref == 'refs/heads/develop'
+    if: github.event.workflow_run.head_branch == 'develop'
     runs-on: ubuntu-latest
     environment: dev
 
     steps:
 
-    - uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v3
 
     - name: Login Azure
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Connect AKS
+    - name: Connect to AKS
       run: |
         az aks get-credentials \
         --resource-group $AKS_RESOURCE_GROUP \
@@ -37,34 +42,66 @@ jobs:
     - name: Deploy to DEV
       run: |
         kubectl set image deployment/user-service \
-        user-container=$ACR_NAME.azurecr.io/user-service:${{ github.sha }} -n dev
+        user-container=$ACR_NAME.azurecr.io/user-service:latest -n dev
 
+########################################################
+# QA DEPLOYMENT
 ########################################################
 
   deploy-qa:
-    if: github.ref == 'refs/heads/qa'
+    if: github.event.workflow_run.head_branch == 'qa'
     runs-on: ubuntu-latest
     environment: qa
 
     steps:
 
-    - name: Deploy QA
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Login Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Connect to AKS
+      run: |
+        az aks get-credentials \
+        --resource-group $AKS_RESOURCE_GROUP \
+        --name $AKS_CLUSTER_NAME \
+        --overwrite-existing
+
+    - name: Deploy to QA
       run: |
         kubectl set image deployment/user-service \
-        user-container=$ACR_NAME.azurecr.io/user-service:${{ github.sha }} -n qa
+        user-container=$ACR_NAME.azurecr.io/user-service:latest -n qa
 
-
+########################################################
+# STAGING DEPLOYMENT
 ########################################################
 
   deploy-staging:
-    if: github.ref == 'refs/heads/staging'
+    if: github.event.workflow_run.head_branch == 'staging'
     runs-on: ubuntu-latest
     environment: staging
 
     steps:
 
-    - name: Deploy STAGING
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Login Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Connect to AKS
+      run: |
+        az aks get-credentials \
+        --resource-group $AKS_RESOURCE_GROUP \
+        --name $AKS_CLUSTER_NAME \
+        --overwrite-existing
+
+    - name: Deploy to STAGING
       run: |
         kubectl set image deployment/user-service \
-        user-container=$ACR_NAME.azurecr.io/user-service:${{ github.sha }} -n staging
-
+        user-container=$ACR_NAME.azurecr.io/user-service:latest -n staging
