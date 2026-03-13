@@ -35,23 +35,46 @@ jobs:
 
     - name: Deploy to ${{ matrix.env }}
       run: |
-        # Use the SHA from the CI workflow that triggered this deploy
         SHA=${{ github.event.workflow_run.head_sha }}
         NAMESPACE=${{ matrix.env }}
-
-        # Update microservices
-        kubectl apply -R -f microservices -n $NAMESPACE
-        kubectl apply -f ./deployment.yaml -n $NAMESPACE  # springboot-app deployment
-        kubectl apply -f ./service.yaml -n $NAMESPACE     # springboot-app service
-        kubectl apply -f ./ingress.yaml -n $NAMESPACE     # ingress for routing
+    
+        echo "Deploying to namespace: $NAMESPACE"
+    
+        ###################################
+        # Deploy Microservices
+        ###################################
+        kubectl apply -f microservices/user-service/deployment.yaml -n $NAMESPACE
+        kubectl apply -f microservices/user-service/service.yaml -n $NAMESPACE
+    
+        kubectl apply -f microservices/order-service/deployment.yaml -n $NAMESPACE
+        kubectl apply -f microservices/order-service/service.yaml -n $NAMESPACE
+    
+        kubectl apply -f microservices/payment-service/deployment.yaml -n $NAMESPACE
+        kubectl apply -f microservices/payment-service/service.yaml -n $NAMESPACE
+    
+        ###################################
+        # Deploy Springboot Monolith
+        ###################################
+        kubectl apply -f deployment.yaml -n $NAMESPACE
+        kubectl apply -f service.yaml -n $NAMESPACE
+    
+        ###################################
+        # Deploy Ingress per Environment
+        ###################################
+        kubectl apply -f ingress/ingress-$NAMESPACE.yaml -n $NAMESPACE
+    
+        ###################################
+        # Update Images
+        ###################################
         kubectl set image deployment/user-service user-container=$ACR_NAME.azurecr.io/user-service:$SHA -n $NAMESPACE
         kubectl set image deployment/order-service order-container=$ACR_NAME.azurecr.io/order-service:$SHA -n $NAMESPACE
         kubectl set image deployment/payment-service payment-container=$ACR_NAME.azurecr.io/payment-service:$SHA -n $NAMESPACE
-
-        # Update monolith
+    
         kubectl set image deployment/springboot-app springboot-container=$ACR_NAME.azurecr.io/aksdemo:$SHA -n $NAMESPACE
-
-        # Wait for rollouts
+    
+        ###################################
+        # Wait for Rollouts
+        ###################################
         kubectl rollout status deployment/user-service -n $NAMESPACE
         kubectl rollout status deployment/order-service -n $NAMESPACE
         kubectl rollout status deployment/payment-service -n $NAMESPACE
