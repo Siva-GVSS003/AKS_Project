@@ -6,7 +6,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: qa.tejaapp.local
+  - host: qa.sivatech.store
     http:
       paths:
 

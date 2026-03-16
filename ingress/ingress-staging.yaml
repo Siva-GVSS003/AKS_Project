@@ -6,7 +6,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: staging.tejaapp.local
+  - host: staging.sivatech.store
     http:
       paths:
 
