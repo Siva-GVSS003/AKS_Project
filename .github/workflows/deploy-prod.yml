@@ -32,7 +32,7 @@ jobs:
     - name: Deploy to Production
       run: |
         # Manually enter SHA or latest tested SHA from pre-prod
-        SHA=<sha-from-preprod>
+        SHA=424bdf86e30003de5c451fc4416dc1313f8f7217
         kubectl set image deployment/user-service user-container=$ACR_NAME.azurecr.io/user-service:$SHA -n $NAMESPACE
         kubectl set image deployment/order-service order-container=$ACR_NAME.azurecr.io/order-service:$SHA -n $NAMESPACE
         kubectl set image deployment/payment-service payment-container=$ACR_NAME.azurecr.io/payment-service:$SHA -n $NAMESPACE
