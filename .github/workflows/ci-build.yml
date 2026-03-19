@@ -59,7 +59,7 @@ jobs:
     # Trivy Scan
     ################################
     - name: Trivy Scan - User
-      uses: aquasecurity/trivy-action@v0.16.0
+      uses: aquasecurity/trivy-action@0.16.0
       with:
         image-ref: ${{ env.ACR_NAME }}.azurecr.io/user-service:${{ github.sha }}
         severity: HIGH,CRITICAL
@@ -109,7 +109,7 @@ jobs:
         docker build -t $ACR_NAME.azurecr.io/order-service:${{ github.sha }} .
 
     - name: Trivy Scan - Order
-      uses: aquasecurity/trivy-action@v0.16.0
+      uses: aquasecurity/trivy-action@0.16.0
       with:
         image-ref: ${{ env.ACR_NAME }}.azurecr.io/order-service:${{ github.sha }}
         severity: HIGH,CRITICAL
@@ -156,7 +156,7 @@ jobs:
         docker build -t $ACR_NAME.azurecr.io/payment-service:${{ github.sha }} .
 
     - name: Trivy Scan - Payment
-      uses: aquasecurity/trivy-action@v0.16.0
+      uses: aquasecurity/trivy-action@0.16.0
       with:
         image-ref: ${{ env.ACR_NAME }}.azurecr.io/payment-service:${{ github.sha }}
         severity: HIGH,CRITICAL
@@ -201,7 +201,7 @@ jobs:
         docker build -t $ACR_NAME.azurecr.io/aksdemo:${{ github.sha }} .
 
     - name: Trivy Scan - Monolith
-      uses: aquasecurity/trivy-action@v0.16.0
+      uses: aquasecurity/trivy-action@0.16.0
       with:
         image-ref: ${{ env.ACR_NAME }}.azurecr.io/aksdemo:${{ github.sha }}
         severity: HIGH,CRITICAL
