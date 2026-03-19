@@ -11,6 +11,8 @@ env:
 jobs:
   deploy-prod:
     runs-on: ubuntu-latest
+    environment:
+      name: production
 
     steps:
     - uses: actions/checkout@v3
@@ -29,8 +31,37 @@ jobs:
 
     - name: Deploy to Production
       run: |
+
+        echo "Deploying to namespace: $NAMESPACE"
+    
+        ###################################
+        # Deploy Microservices
+        ###################################
+        kubectl apply -f microservices/user-service/deployment.yaml -n $NAMESPACE
+        kubectl apply -f microservices/user-service/service.yaml -n $NAMESPACE
+    
+        kubectl apply -f microservices/order-service/deployment.yaml -n $NAMESPACE
+        kubectl apply -f microservices/order-service/service.yaml -n $NAMESPACE
+    
+        kubectl apply -f microservices/payment-service/deployment.yaml -n $NAMESPACE
+        kubectl apply -f microservices/payment-service/service.yaml -n $NAMESPACE
+    
+        ###################################
+        # Deploy Springboot Monolith
+        ###################################
+        kubectl apply -f deployment.yaml -n $NAMESPACE
+        kubectl apply -f service.yaml -n $NAMESPACE
+    
+        ###################################
+        # Deploy Ingress per Environment
+        ###################################
+        kubectl apply -f ingress/ingress-$NAMESPACE.yaml -n $NAMESPACE
+    
+        ###################################
+        # Update Images
+        ###################################
         # Manually enter SHA or latest tested SHA from pre-prod
-        SHA=<sha-from-preprod>
+        SHA=424bdf86e30003de5c451fc4416dc1313f8f7217
         kubectl set image deployment/user-service user-container=$ACR_NAME.azurecr.io/user-service:$SHA -n $NAMESPACE
         kubectl set image deployment/order-service order-container=$ACR_NAME.azurecr.io/order-service:$SHA -n $NAMESPACE
         kubectl set image deployment/payment-service payment-container=$ACR_NAME.azurecr.io/payment-service:$SHA -n $NAMESPACE
