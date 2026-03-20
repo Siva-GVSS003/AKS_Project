@@ -82,7 +82,7 @@
 
     <build>
         <plugins>
-            <!-- Spring Boot Plug-in -->
+            <!-- Spring Boot Plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -90,4 +90,4 @@
         </plugins>
     </build>
 
-</project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>
+</project>
