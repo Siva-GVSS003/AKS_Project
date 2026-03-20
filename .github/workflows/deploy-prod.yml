@@ -61,7 +61,7 @@ jobs:
         # Update Images
         ###################################
         # Manually enter SHA or latest tested SHA from pre-prod
-        SHA=947fe7e07f0601f37e257db33a39469e10a772af
+        SHA=b2b423f3ab8c43ecddc26b28e12652a77569edff
         kubectl set image deployment/user-service user-container=$ACR_NAME.azurecr.io/user-service:$SHA -n $NAMESPACE
         kubectl set image deployment/order-service order-container=$ACR_NAME.azurecr.io/order-service:$SHA -n $NAMESPACE
         kubectl set image deployment/payment-service payment-container=$ACR_NAME.azurecr.io/payment-service:$SHA -n $NAMESPACE
