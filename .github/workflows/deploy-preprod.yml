@@ -82,12 +82,7 @@ jobs:
     
         kubectl set image deployment/springboot-app springboot-container=$ACR_NAME.azurecr.io/aksdemo:$SHA -n $NAMESPACE
     
-        ###################################
-        # 🔥 Force restart (IMPORTANT)
-        #kubectl rollout restart deployment/user-service -n $NAMESPACE
-        #kubectl rollout restart deployment/order-service -n $NAMESPACE
-        #kubectl rollout restart deployment/payment-service -n $NAMESPACE
-        #kubectl rollout restart deployment/springboot-app -n $NAMESPACE
+        
         # Wait for Rollouts
         ###################################
         kubectl rollout status deployment/user-service -n $NAMESPACE
