@@ -59,7 +59,7 @@ jobs:
     # Trivy Scan
     ################################
     - name: Trivy Scan - User
-      uses: aquasecurity/trivy-action@0.28.0
+      uses: aquasecurity/trivy-action@master
       with:
         image-ref: ${{ env.ACR_NAME }}.azurecr.io/user-service:${{ github.sha }}
         severity: HIGH,CRITICAL
