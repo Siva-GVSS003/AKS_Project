@@ -66,7 +66,10 @@ jobs:
         kubectl set image deployment/order-service order-container=$ACR_NAME.azurecr.io/order-service:$SHA -n $NAMESPACE
         kubectl set image deployment/payment-service payment-container=$ACR_NAME.azurecr.io/payment-service:$SHA -n $NAMESPACE
         kubectl set image deployment/springboot-app springboot-container=$ACR_NAME.azurecr.io/aksdemo:$SHA -n $NAMESPACE
-
+        kubectl rollout restart deployment/user-service -n $NAMESPACE
+        kubectl rollout restart deployment/order-service -n $NAMESPACE
+        kubectl rollout restart deployment/payment-service -n $NAMESPACE
+        kubectl rollout restart deployment/springboot-app -n $NAMESPACE
         # Wait for rollouts
         kubectl rollout status deployment/user-service -n $NAMESPACE
         kubectl rollout status deployment/order-service -n $NAMESPACE
