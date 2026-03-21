@@ -8,7 +8,7 @@ spec:
   rules:
   - host: qa.sivatech.store
     http:
-      paths:
+      paths:gir
 
       - path: /
         pathType: Prefix
