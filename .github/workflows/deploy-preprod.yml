@@ -41,29 +41,68 @@ jobs:
 
     
         echo "Deploying to namespace: $NAMESPACE"
-    
+        ###################################
+        # Create namespace if not exists
+        ###################################
+        kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
+
+        ###################################
+        # Deploy using HELM
+        ###################################
+
+        # USER SERVICE
+        helm upgrade --install user-service ./helm/user-service \
+          -n $NAMESPACE \
+          -f ./helm/user-service/values-$NAMESPACE.yaml \
+          --set image.tag=$SHA
+
+        # ORDER SERVICE
+        helm upgrade --install order-service ./helm/order-service \
+          -n $NAMESPACE \
+          -f ./helm/order-service/values-$NAMESPACE.yaml \
+          --set image.tag=$SHA
+
+        # PAYMENT SERVICE
+        helm upgrade --install payment-service ./helm/payment-service \
+          -n $NAMESPACE \
+          -f ./helm/payment-service/values-$NAMESPACE.yaml \
+          --set image.tag=$SHA
+
+        # MONOLITH
+        helm upgrade --install springboot-app ./helm/monolith \
+          -n $NAMESPACE \
+          -f ./helm/monolith/values-$NAMESPACE.yaml \
+          --set image.tag=$SHA
+
+        ###################################
+        # Ingress (still kubectl - OK)
+        ###################################
+        kubectl apply -f ingress/ingress-$NAMESPACE.yaml -n $NAMESPACE
+        
+        
+        
         ###################################
         # Deploy Microservices
         ###################################
-        kubectl apply -f microservices/user-service/deployment.yaml -n $NAMESPACE
-        kubectl apply -f microservices/user-service/service.yaml -n $NAMESPACE
+        #kubectl apply -f microservices/user-service/deployment.yaml -n $NAMESPACE
+        #kubectl apply -f microservices/user-service/service.yaml -n $NAMESPACE
     
-        kubectl apply -f microservices/order-service/deployment.yaml -n $NAMESPACE
-        kubectl apply -f microservices/order-service/service.yaml -n $NAMESPACE
+        #kubectl apply -f microservices/order-service/deployment.yaml -n $NAMESPACE
+        #kubectl apply -f microservices/order-service/service.yaml -n $NAMESPACE
     
-        kubectl apply -f microservices/payment-service/deployment.yaml -n $NAMESPACE
-        kubectl apply -f microservices/payment-service/service.yaml -n $NAMESPACE
+        #kubectl apply -f microservices/payment-service/deployment.yaml -n $NAMESPACE
+        #kubectl apply -f microservices/payment-service/service.yaml -n $NAMESPACE
     
         ###################################
         # Deploy Springboot Monolith
         ###################################
-        kubectl apply -f deployment.yaml -n $NAMESPACE
-        kubectl apply -f service.yaml -n $NAMESPACE
+        #kubectl apply -f deployment.yaml -n $NAMESPACE
+        #kubectl apply -f service.yaml -n $NAMESPACE
     
         ###################################
         # Deploy Ingress per Environment
         ###################################
-        kubectl apply -f ingress/ingress-$NAMESPACE.yaml -n $NAMESPACE
+        #kubectl apply -f ingress/ingress-$NAMESPACE.yaml -n $NAMESPACE
     
         ###################################
         # Update Images
@@ -71,21 +110,21 @@ jobs:
 
 
         # Update microservices
-        kubectl apply -R -f microservices -n $NAMESPACE
-        kubectl apply -f ./deployment.yaml -n $NAMESPACE  # springboot-app deployment
-        kubectl apply -f ./service.yaml -n $NAMESPACE     # springboot-app service
+        #kubectl apply -R -f microservices -n $NAMESPACE
+        #kubectl apply -f ./deployment.yaml -n $NAMESPACE  # springboot-app deployment
+        #kubectl apply -f ./service.yaml -n $NAMESPACE     # springboot-app service
         
 
-        kubectl set image deployment/user-service user-container=$ACR_NAME.azurecr.io/user-service:$SHA -n $NAMESPACE
-        kubectl set image deployment/order-service order-container=$ACR_NAME.azurecr.io/order-service:$SHA -n $NAMESPACE
-        kubectl set image deployment/payment-service payment-container=$ACR_NAME.azurecr.io/payment-service:$SHA -n $NAMESPACE
+        #kubectl set image deployment/user-service user-container=$ACR_NAME.azurecr.io/user-service:$SHA -n $NAMESPACE
+        #kubectl set image deployment/order-service order-container=$ACR_NAME.azurecr.io/order-service:$SHA -n $NAMESPACE
+        #kubectl set image deployment/payment-service payment-container=$ACR_NAME.azurecr.io/payment-service:$SHA -n $NAMESPACE
     
-        kubectl set image deployment/springboot-app springboot-container=$ACR_NAME.azurecr.io/aksdemo:$SHA -n $NAMESPACE
+        #kubectl set image deployment/springboot-app springboot-container=$ACR_NAME.azurecr.io/aksdemo:$SHA -n $NAMESPACE
     
         
         # Wait for Rollouts
         ###################################
-        kubectl rollout status deployment/user-service -n $NAMESPACE
-        kubectl rollout status deployment/order-service -n $NAMESPACE
-        kubectl rollout status deployment/payment-service -n $NAMESPACE
-        kubectl rollout status deployment/springboot-app -n $NAMESPACE
+        #kubectl rollout status deployment/user-service -n $NAMESPACE
+        #kubectl rollout status deployment/order-service -n $NAMESPACE
+        #kubectl rollout status deployment/payment-service -n $NAMESPACE
+        #kubectl rollout status deployment/springboot-app -n $NAMESPACE  */
