@@ -1,7 +1,3 @@
-replicaCount: 1
-
-image:
-  tag: latest
-
-container:
-  port: 8080
+ingress:
+  enabled: true
+  host: staging.sivatech.store
