@@ -1,0 +1,11 @@
+name: springboot-app
+
+replicaCount: 1
+
+image:
+  repository: tejaacr.azurecr.io/aksdemo
+  tag: latest
+
+container:
+  name: springboot-container
+  port: 8080

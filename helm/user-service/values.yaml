@@ -1,0 +1,11 @@
+name: user-service
+
+replicaCount: 1
+
+image:
+  repository: tejaacr.azurecr.io/user-service
+  tag: latest
+
+container:
+  name: user-container
+  port: 8080
