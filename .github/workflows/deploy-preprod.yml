@@ -75,7 +75,7 @@ jobs:
           --set image.tag=$SHA
 
         ###################################
-        # Ingress (still kubectl - OK)
+        # #Ingress (still kubectl - OK)
         ###################################
         kubectl apply -f ingress/ingress-$NAMESPACE.yaml -n $NAMESPACE
         
