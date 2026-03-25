@@ -68,7 +68,7 @@ jobs:
           -f ./helm/payment-service/values-$NAMESPACE.yaml \
           --set image.tag=$SHA
 
-        # MONOLITH
+        # MONOLITH #
         helm upgrade --install springboot-app ./helm/monolith \
           -n $NAMESPACE \
           -f ./helm/monolith/values-$NAMESPACE.yaml \
