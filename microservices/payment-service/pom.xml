@@ -1,40 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
- xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
- https://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-<parent>
- <groupId>org.springframework.boot</groupId>
- <artifactId>spring-boot-starter-parent</artifactId>
- <version>3.2.5</version>
-</parent>
+    <!-- ✅ Upgrade Spring Boot Parent to fix spring-core vulnerabilities -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.4.11</version> <!-- upgraded from 3.4.5 -->
+        <relativePath/>
+    </parent>
 
-<groupId>com.teja</groupId>
-<artifactId>payment-service</artifactId>
-<version>1.0</version>
+    <groupId>com.teja</groupId>
+    <artifactId>aksdemo</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>aksdemo</name>
+    <description>Spring Boot AKS Demo</description>
 
-<properties>
- <java.version>17</java.version>
-</properties>
+    <properties>
+        <java.version>17</java.version>
 
-<dependencies>
+        <!-- ✅ Force secure Tomcat -->
+        <tomcat.version>10.1.45</tomcat.version>
 
- <dependency>
-  <groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-starter-web</artifactId>
- </dependency>
+        <!-- ✅ Force secure Jackson -->
+        <jackson.version>2.18.6</jackson.version>
+    </properties>
 
-</dependencies>
+    <!-- ✅ Override vulnerable transitive dependencies -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
-<build>
- <plugins>
-  <plugin>
-   <groupId>org.springframework.boot</groupId>
-   <artifactId>spring-boot-maven-plugin</artifactId>
-  </plugin>
- </plugins>
-</build>
+    <dependencies>
+        <!-- Web -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- ✅ Force secure Tomcat -->
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-core</artifactId>
+            <version>${tomcat.version}</version>
+        </dependency>
+
+        <!-- ✅ Force secure Jackson (already managed above, but explicit is OK) -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <!-- Tests -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Spring Boot Plugin -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

@@ -61,12 +61,12 @@ jobs:
         # Update Images
         ###################################
         # Manually enter SHA or latest tested SHA from pre-prod
-        SHA=424bdf86e30003de5c451fc4416dc1313f8f7217
+        SHA=b2b423f3ab8c43ecddc26b28e12652a77569edff
         kubectl set image deployment/user-service user-container=$ACR_NAME.azurecr.io/user-service:$SHA -n $NAMESPACE
         kubectl set image deployment/order-service order-container=$ACR_NAME.azurecr.io/order-service:$SHA -n $NAMESPACE
         kubectl set image deployment/payment-service payment-container=$ACR_NAME.azurecr.io/payment-service:$SHA -n $NAMESPACE
         kubectl set image deployment/springboot-app springboot-container=$ACR_NAME.azurecr.io/aksdemo:$SHA -n $NAMESPACE
-
+         
         # Wait for rollouts
         kubectl rollout status deployment/user-service -n $NAMESPACE
         kubectl rollout status deployment/order-service -n $NAMESPACE

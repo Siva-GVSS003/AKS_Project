@@ -12,9 +12,9 @@ env:
 
 jobs:
 
-########################################
-# USER SERVICE
-########################################
+############################################
+# 🧱 USER SERVICE
+############################################
   user-service:
     runs-on: ubuntu-latest
 
@@ -28,22 +28,6 @@ jobs:
         distribution: temurin
         java-version: 17
 
-    - name: Cache Maven
-      uses: actions/cache@v3
-      with:
-        path: ~/.m2
-        key: ${{ runner.os }}-m2-user-${{ hashFiles('microservices/user-service/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-m2
-
-    - name: Sonar + Build (User Service)
-      working-directory: microservices/user-service
-      run: |
-        mvn clean verify sonar:sonar \
-          -Dsonar.projectKey=user-service \
-          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-
     - name: Login Azure
       uses: azure/login@v1
       with:
@@ -52,18 +36,48 @@ jobs:
     - name: Login ACR
       run: az acr login --name $ACR_NAME
 
-    - name: Docker Build & Push (User Service)
+    ################################
+    # Build + Sonar
+    ################################
+    - name: Build & Sonar - User Service
+      working-directory: microservices/user-service
+      run: |
+        mvn clean verify sonar:sonar -DskipTests \
+        -Dsonar.projectKey=user-service \
+        -Dsonar.host.url=http://52.172.232.180:9000 \
+        -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
+    ################################
+    # Docker Build
+    ################################
+    - name: Build Docker Image - User
       working-directory: microservices/user-service
       run: |
         docker build -t $ACR_NAME.azurecr.io/user-service:${{ github.sha }} .
+
+    ################################
+    # Trivy Scan
+    ################################
+    - name: Trivy Scan - User
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.ACR_NAME }}.azurecr.io/user-service:${{ github.sha }}
+        severity: HIGH,CRITICAL
+        exit-code: 1
+
+    ################################
+    # Push
+    ################################
+    - name: Push Image - User
+      run: |
         docker push $ACR_NAME.azurecr.io/user-service:${{ github.sha }}
         docker tag $ACR_NAME.azurecr.io/user-service:${{ github.sha }} $ACR_NAME.azurecr.io/user-service:latest
         docker push $ACR_NAME.azurecr.io/user-service:latest
 
 
-########################################
-# ORDER SERVICE
-########################################
+############################################
+# 🧱 ORDER SERVICE
+############################################
   order-service:
     runs-on: ubuntu-latest
 
@@ -75,42 +89,42 @@ jobs:
         distribution: temurin
         java-version: 17
 
-    - name: Cache Maven
-      uses: actions/cache@v3
-      with:
-        path: ~/.m2
-        key: ${{ runner.os }}-m2-order-${{ hashFiles('microservices/order-service/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-m2
-
-    - name: Sonar + Build (Order Service)
-      working-directory: microservices/order-service
-      run: |
-        mvn clean verify sonar:sonar \
-          -Dsonar.projectKey=order-service \
-          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-
-    - name: Login Azure
-      uses: azure/login@v1
+    - uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Login ACR
-      run: az acr login --name $ACR_NAME
+    - run: az acr login --name $ACR_NAME
 
-    - name: Docker Build & Push (Order Service)
+    - name: Build & Sonar - Order Service
+      working-directory: microservices/order-service
+      run: |
+        mvn clean verify sonar:sonar -DskipTests \
+        -Dsonar.projectKey=order-service \
+        -Dsonar.host.url=http://52.172.232.180:9000 \
+        -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
+    - name: Build Docker Image - Order
       working-directory: microservices/order-service
       run: |
         docker build -t $ACR_NAME.azurecr.io/order-service:${{ github.sha }} .
+
+    - name: Trivy Scan - Order
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.ACR_NAME }}.azurecr.io/order-service:${{ github.sha }}
+        severity: HIGH,CRITICAL
+        exit-code: 1
+
+    - name: Push Image - Order
+      run: |
         docker push $ACR_NAME.azurecr.io/order-service:${{ github.sha }}
         docker tag $ACR_NAME.azurecr.io/order-service:${{ github.sha }} $ACR_NAME.azurecr.io/order-service:latest
         docker push $ACR_NAME.azurecr.io/order-service:latest
 
 
-########################################
-# PAYMENT SERVICE
-########################################
+############################################
+# 🧱 PAYMENT SERVICE
+############################################
   payment-service:
     runs-on: ubuntu-latest
 
@@ -122,42 +136,42 @@ jobs:
         distribution: temurin
         java-version: 17
 
-    - name: Cache Maven
-      uses: actions/cache@v3
-      with:
-        path: ~/.m2
-        key: ${{ runner.os }}-m2-payment-${{ hashFiles('microservices/payment-service/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-m2
-
-    - name: Sonar + Build (Payment Service)
-      working-directory: microservices/payment-service
-      run: |
-        mvn clean verify sonar:sonar \
-          -Dsonar.projectKey=payment-service \
-          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-
-    - name: Login Azure
-      uses: azure/login@v1
+    - uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Login ACR
-      run: az acr login --name $ACR_NAME
+    - run: az acr login --name $ACR_NAME
 
-    - name: Docker Build & Push (Payment Service)
+    - name: Build & Sonar - Payment Service
+      working-directory: microservices/payment-service
+      run: |
+        mvn clean verify sonar:sonar -DskipTests \
+        -Dsonar.projectKey=payment-service \
+        -Dsonar.host.url=http://52.172.232.180:9000 \
+        -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
+    - name: Build Docker Image - Payment
       working-directory: microservices/payment-service
       run: |
         docker build -t $ACR_NAME.azurecr.io/payment-service:${{ github.sha }} .
+
+    - name: Trivy Scan - Payment
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.ACR_NAME }}.azurecr.io/payment-service:${{ github.sha }}
+        severity: HIGH,CRITICAL
+        exit-code: 1
+
+    - name: Push Image - Payment
+      run: |
         docker push $ACR_NAME.azurecr.io/payment-service:${{ github.sha }}
         docker tag $ACR_NAME.azurecr.io/payment-service:${{ github.sha }} $ACR_NAME.azurecr.io/payment-service:latest
         docker push $ACR_NAME.azurecr.io/payment-service:latest
 
 
-########################################
-# MONOLITH
-########################################
+############################################
+# 🧱 MONOLITH
+############################################
   monolith:
     runs-on: ubuntu-latest
 
@@ -169,32 +183,32 @@ jobs:
         distribution: temurin
         java-version: 17
 
-    - name: Cache Maven
-      uses: actions/cache@v3
-      with:
-        path: ~/.m2
-        key: ${{ runner.os }}-m2-monolith-${{ hashFiles('pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-m2
-
-    - name: Sonar + Build (Monolith)
-      run: |
-        mvn clean verify sonar:sonar \
-          -Dsonar.projectKey=aksdemo \
-          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-
-    - name: Login Azure
-      uses: azure/login@v1
+    - uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Login ACR
-      run: az acr login --name $ACR_NAME
+    - run: az acr login --name $ACR_NAME
 
-    - name: Docker Build & Push (Monolith)
+    - name: Build & Sonar - Monolith
+      run: |
+        mvn clean verify sonar:sonar -DskipTests \
+        -Dsonar.projectKey=aksdemo \
+        -Dsonar.host.url=http://52.172.232.180:9000 \
+        -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
+    - name: Build Docker Image - Monolith
       run: |
         docker build -t $ACR_NAME.azurecr.io/aksdemo:${{ github.sha }} .
+
+    - name: Trivy Scan - Monolith
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.ACR_NAME }}.azurecr.io/aksdemo:${{ github.sha }}
+        severity: HIGH,CRITICAL
+        exit-code: 1
+
+    - name: Push Image - Monolith
+      run: |
         docker push $ACR_NAME.azurecr.io/aksdemo:${{ github.sha }}
         docker tag $ACR_NAME.azurecr.io/aksdemo:${{ github.sha }} $ACR_NAME.azurecr.io/aksdemo:latest
         docker push $ACR_NAME.azurecr.io/aksdemo:latest
