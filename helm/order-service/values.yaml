@@ -1,0 +1,11 @@
+name: order-service
+
+replicaCount: 1
+
+image:
+  repository: tejaacr.azurecr.io/order-service
+  tag: latest
+
+container:
+  name: order-container
+  port: 8081

@@ -74,9 +74,6 @@ jobs:
           -f ./helm/monolith/values-$NAMESPACE.yaml \
           --set image.tag=$SHA
 
-        ###################################
-        # #Ingress (still kubectl - OK)
-        ###################################
         kubectl apply -f ingress/ingress-$NAMESPACE.yaml -n $NAMESPACE
         
         

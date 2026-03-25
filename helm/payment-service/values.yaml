@@ -1,0 +1,11 @@
+name: payment-service
+
+replicaCount: 1
+
+image:
+  repository: tejaacr.azurecr.io/payment-service
+  tag: latest
+
+container:
+  name: payment-container
+  port: 8082

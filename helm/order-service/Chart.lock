@@ -1,0 +1,6 @@
+dependencies:
+- name: base-chart
+  repository: file://../base-chart
+  version: 0.1.0
+digest: sha256:82f10e3b0c24f27e553520dc2ab60a9d1ee31fd063acd860f42436b39e1bbc13
+generated: "2026-03-24T07:33:20.851698553Z"
