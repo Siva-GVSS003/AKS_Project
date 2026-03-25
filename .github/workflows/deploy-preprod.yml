@@ -53,25 +53,25 @@ jobs:
         # USER SERVICE
         helm upgrade --install user-service ./helm/user-service \
           -n $NAMESPACE \
-          -f ./helm/user-service/values-$NAMESPACE.yaml \
+          -f ./helm/values-$NAMESPACE.yaml \
           --set image.tag=$SHA
 
         # ORDER SERVICE
         helm upgrade --install order-service ./helm/order-service \
           -n $NAMESPACE \
-          -f ./helm/order-service/values-$NAMESPACE.yaml \
+          -f ./helm/values-$NAMESPACE.yaml \
           --set image.tag=$SHA
 
         # PAYMENT SERVICE
         helm upgrade --install payment-service ./helm/payment-service \
           -n $NAMESPACE \
-          -f ./helm/payment-service/values-$NAMESPACE.yaml \
+          -f ./helm/values-$NAMESPACE.yaml \
           --set image.tag=$SHA
 
         # MONOLITH #
         helm upgrade --install springboot-app ./helm/monolith \
           -n $NAMESPACE \
-          -f ./helm/monolith/values-$NAMESPACE.yaml \
+          -f ./helm/values-$NAMESPACE.yaml \
           --set image.tag=$SHA
 
         kubectl apply -f ingress/ingress-$NAMESPACE.yaml -n $NAMESPACE
