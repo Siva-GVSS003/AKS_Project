@@ -16,7 +16,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: springboot-service
+                name: springboot-app
                 port:
                   number: 80
 
