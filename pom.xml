@@ -21,13 +21,16 @@
     <description>Spring Boot AKS Demo</description>
 
     <properties>
-        <java.version>17</java.version>
-
-
-
-        <!-- ✅ Force secure Jackson -->
-        <jackson.version>2.18.6</jackson.version>
+         <java.version>17</java.version>
+         <tomcat.version>10.1.52</tomcat.version>
+         <!-- ✅ Force secure Jackson -->
+         <jackson.version>2.18.6</jackson.version>
     </properties>
+    <dependency>
+             <groupId>org.apache.tomcat.embed</groupId>
+             <artifactId>tomcat-embed-core</artifactId>
+             <version>${tomcat.version}</version>
+    </dependency>     
 
     <!-- ✅ Override vulnerable transitive dependencies -->
     <dependencyManagement>
