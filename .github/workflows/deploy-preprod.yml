@@ -108,6 +108,4 @@ jobs:
         # SHOW HELM RELEASES (DEBUGGING)
         ###################################
         helm list -n $NAMESPACE
-          --overwrite-existing
 
-   
