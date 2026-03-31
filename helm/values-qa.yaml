@@ -1,5 +1,5 @@
 ingress:
-  enabled: true
+  enabled: false
   host: qa.sivatech.store
 
 monolith:
