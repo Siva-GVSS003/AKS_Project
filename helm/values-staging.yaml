@@ -1,7 +1,15 @@
-replicaCount: 1
+ingress:
+  enabled: true
+  host: staging.sivatech.store
 
-image:
-  tag: latest
+monolith:
+  serviceName: springboot-app
 
-container:
-  port: 8080
+user:
+  serviceName: user-service
+
+order:
+  serviceName: order-service
+
+payment:
+  serviceName: payment-service

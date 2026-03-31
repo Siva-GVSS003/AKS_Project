@@ -32,8 +32,7 @@ jobs:
         az aks get-credentials \
           --resource-group $AKS_RESOURCE_GROUP \
           --name $AKS_CLUSTER_NAME \
-          --overwrite-existing
-
+    
     - name: Deploy to ${{ matrix.env }}
       run: |
         set -e   # fail immediately if error
@@ -109,6 +108,4 @@ jobs:
         # SHOW HELM RELEASES (DEBUGGING)
         ###################################
         helm list -n $NAMESPACE
-        
-        
-        
+

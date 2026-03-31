@@ -1,4 +1,4 @@
 apiVersion: v2
 name: base-chart
-type: library   # 🔥 IMPORTANT
 version: 0.1.0
+type: library
