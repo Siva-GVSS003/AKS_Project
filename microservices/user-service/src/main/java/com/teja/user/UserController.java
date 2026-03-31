@@ -9,7 +9,7 @@ public class UserController {
     @GetMapping("/user")
     public String users(){
 
-        return "User Service Running in AKS-Teja🚀";
+        return "User Service Running in AKS-Siva🚀";
 
 
     }
