@@ -4,7 +4,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Values.name }}-ingress
+  name: {{ .Release.Name }}-ingress
 spec:
   ingressClassName: nginx
   rules:
@@ -16,7 +16,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: springboot-app
+                name: {{ .Values.monolith.serviceName }}
                 port:
                   number: 80
 
@@ -24,7 +24,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: user-service
+                name: {{ .Values.user.serviceName }}
                 port:
                   number: 80
 
@@ -32,7 +32,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: order-service
+                name: {{ .Values.order.serviceName }}
                 port:
                   number: 80
 
@@ -40,7 +40,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: payment-service
+                name: {{ .Values.payment.serviceName }}
                 port:
                   number: 80
 
