@@ -1,3 +1,15 @@
 ingress:
   enabled: true
   host: qa.sivatech.store
+
+monolith:
+  serviceName: springboot-app
+
+user:
+  serviceName: user-service
+
+order:
+  serviceName: order-service
+
+payment:
+  serviceName: payment-service
