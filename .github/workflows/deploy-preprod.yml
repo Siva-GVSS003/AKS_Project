@@ -58,7 +58,7 @@ jobs:
         ###################################
         # COMMON HELM FLAGS (BEST PRACTICE)
         ###################################
-        HELM_FLAGS="--install \
+        #HELM_FLAGS="--install \
         --namespace $NAMESPACE \
         --create-namespace \
         --atomic \
