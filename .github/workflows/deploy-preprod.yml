@@ -35,77 +35,58 @@ jobs:
     
     - name: Deploy to ${{ matrix.env }}
       run: |
-        set -e   # fail immediately if error
+        set -e
     
         SHA=${{ github.event.workflow_run.head_sha }}
         NAMESPACE=${{ matrix.env }}
     
         echo "🚀 Deploying to namespace: $NAMESPACE"
     
-        ###################################
-        # Create namespace if not exists
-        ###################################
         kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
     
-        ###################################
-        # HELM DEPENDENCY UPDATE
-        ###################################
         helm dependency update ./helm/user-service
         helm dependency update ./helm/order-service
         helm dependency update ./helm/payment-service
         helm dependency update ./helm/monolith
     
         ###################################
-        # COMMON HELM FLAGS (BEST PRACTICE)
-        ###################################
-        #HELM_FLAGS="--install \
-        --namespace $NAMESPACE \
-        --create-namespace \
-        --atomic \
-        --timeout 5m"
-    
-        ###################################
         # DEPLOY USER SERVICE
         ###################################
-        helm upgrade user-service ./helm/user-service \
-          $HELM_FLAGS \
+        helm upgrade --install user-service ./helm/user-service \
+          --namespace $NAMESPACE \
           -f ./helm/values-$NAMESPACE.yaml \
           --set image.tag=$SHA
     
         ###################################
         # DEPLOY ORDER SERVICE
         ###################################
-        helm upgrade order-service ./helm/order-service \
-          $HELM_FLAGS \
+        helm upgrade --install order-service ./helm/order-service \
+          --namespace $NAMESPACE \
           -f ./helm/values-$NAMESPACE.yaml \
           --set image.tag=$SHA
     
         ###################################
         # DEPLOY PAYMENT SERVICE
         ###################################
-        helm upgrade payment-service ./helm/payment-service \
-          $HELM_FLAGS \
+        helm upgrade --install payment-service ./helm/payment-service \
+          --namespace $NAMESPACE \
           -f ./helm/values-$NAMESPACE.yaml \
           --set image.tag=$SHA
     
         ###################################
         # DEPLOY MONOLITH
         ###################################
-        helm upgrade springboot-app ./helm/monolith \
-          $HELM_FLAGS \
+        helm upgrade --install springboot-app ./helm/monolith \
+          --namespace $NAMESPACE \
           -f ./helm/values-$NAMESPACE.yaml \
           --set image.tag=$SHA
     
         ###################################
-        # VERIFY DEPLOYMENT (IMPORTANT)
+        # VERIFY
         ###################################
         kubectl rollout status deployment/user-service -n $NAMESPACE
         kubectl rollout status deployment/order-service -n $NAMESPACE
         kubectl rollout status deployment/payment-service -n $NAMESPACE
         kubectl rollout status deployment/springboot-app -n $NAMESPACE
     
-        ###################################
-        # SHOW HELM RELEASES (DEBUGGING)
-        ###################################
         helm list -n $NAMESPACE
-
