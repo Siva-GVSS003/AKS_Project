@@ -3,6 +3,8 @@ kind: Ingress
 metadata:
   name: microservices-ingress
   namespace: qa
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   ingressClassName: nginx
   rules:
