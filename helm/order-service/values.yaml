@@ -8,4 +8,4 @@ image:
 
 container:
   name: order-container
-  port: 8081
+  port: 8080
