@@ -8,13 +8,13 @@ spec:
   rules:
   - host: qa.sivatech.store
     http:
-      paths:
+      paths:gir
 
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: springboot-app
+            name: springboot-service
             port:
               number: 80
 
