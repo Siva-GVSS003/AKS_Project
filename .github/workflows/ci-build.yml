@@ -45,7 +45,7 @@ jobs:
       run: |
         mvn clean verify sonar:sonar -DskipTests \
         -Dsonar.projectKey=user-service \
-        -Dsonar.host.url=http://52.172.232.180:9000 \
+        -Dsonar.host.url=http://20.204.140.194:9000 \
         -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
     ################################
@@ -101,7 +101,7 @@ jobs:
       run: |
         mvn clean verify sonar:sonar -DskipTests \
         -Dsonar.projectKey=order-service \
-        -Dsonar.host.url=http://52.172.232.180:9000 \
+        -Dsonar.host.url=http://20.204.140.194:9000 \
         -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
     - name: Build Docker Image - Order
@@ -148,7 +148,7 @@ jobs:
       run: |
         mvn clean verify sonar:sonar -DskipTests \
         -Dsonar.projectKey=payment-service \
-        -Dsonar.host.url=http://52.172.232.180:9000 \
+        -Dsonar.host.url=http://20.204.140.194:9000 \
         -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
     - name: Build Docker Image - Payment
@@ -194,7 +194,7 @@ jobs:
       run: |
         mvn clean verify sonar:sonar -DskipTests \
         -Dsonar.projectKey=aksdemo \
-        -Dsonar.host.url=http://52.172.232.180:9000 \
+        -Dsonar.host.url=http://20.204.140.194:9000 \
         -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
     - name: Build Docker Image - Monolith
