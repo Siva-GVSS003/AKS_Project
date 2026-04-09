@@ -8,8 +8,8 @@ on:
 
 env:
   ACR_NAME: tejaacr
-  AKS_CLUSTER_NAME: teja-aks-cluster
-  AKS_RESOURCE_GROUP: teja-devops-rg
+  AKS_CLUSTER_NAME: teja-cluster
+  AKS_RESOURCE_GROUP: teja-rg
 
 jobs:
   deploy:
