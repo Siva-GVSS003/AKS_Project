@@ -2,11 +2,7 @@ name: Deploy PreProd Environments
 
 on:
   workflow_dispatch:
-    inputs:
-      environment:
-        description: "Environment to deploy"
-        required: true
-        default: "dev"
+  
 env:
   ACR_NAME: tejaacr
   AKS_CLUSTER_NAME: teja-cluster
@@ -14,7 +10,8 @@ env:
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    #if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
