@@ -17,13 +17,15 @@ jobs:
         env: [dev, qa, staging]
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+    ###################################
+    # CHECKOUT
+    ###################################
+    - uses: actions/checkout@v3
 
     ###################################
     # LOGIN TO AZURE
     ###################################
-    - name: Azure Login
+    - name: Login Azure
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
@@ -33,19 +35,16 @@ jobs:
     ###################################
     - name: Install kubelogin
       run: |
-        set -e
         curl -LO https://github.com/Azure/kubelogin/releases/latest/download/kubelogin-linux-amd64.zip
-        unzip -o kubelogin-linux-amd64.zip
-        sudo install bin/linux_amd64/kubelogin /usr/local/bin/kubelogin
+        unzip kubelogin-linux-amd64.zip
+        sudo mv bin/linux_amd64/kubelogin /usr/local/bin/
         kubelogin --version
 
     ###################################
-    # CONNECT TO AKS
+    # CONNECT TO AKS (AAD MODE - FIXED)
     ###################################
-    - name: Connect to AKS
+    - name: Connect AKS
       run: |
-        set -e
-
         az aks get-credentials \
           --resource-group $AKS_RESOURCE_GROUP \
           --name $AKS_CLUSTER_NAME \
@@ -53,8 +52,10 @@ jobs:
 
         kubelogin convert-kubeconfig -l azurecli
 
+        kubectl get nodes
+
     ###################################
-    # DEPLOY TO ENV
+    # DEPLOY
     ###################################
     - name: Deploy to ${{ matrix.env }}
       run: |
@@ -64,36 +65,55 @@ jobs:
         NAMESPACE=${{ matrix.env }}
 
         echo "🚀 Deploying to namespace: $NAMESPACE"
-        echo "📦 Image tag: $SHA"
+        echo "📦 Image tag (commit): $SHA"
 
-        # Create namespace if not exists
+        # Create namespace
         kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
 
-        # Update Helm dependencies
-        for chart in user-service order-service payment-service monolith
-        do
-          helm dependency update ./helm/$chart
-        done
+        # Helm dependencies
+        helm dependency update ./helm/user-service
+        helm dependency update ./helm/order-service
+        helm dependency update ./helm/payment-service
+        helm dependency update ./helm/monolith
 
         ###################################
-        # SERVICES DEPLOYMENT LOOP
+        # USER SERVICE
         ###################################
-        for service in user-service order-service payment-service springboot-app
-        do
-          echo "Deploying $service..."
-
-          helm upgrade --install $service ./helm/$service \
-            --namespace $NAMESPACE \
-            -f ./helm/values-$NAMESPACE.yaml \
-            --set image.tag=$SHA
-        done
+        helm upgrade --install user-service ./helm/user-service \
+          --namespace $NAMESPACE \
+          -f ./helm/values-$NAMESPACE.yaml \
+          --set image.tag=$SHA
 
         ###################################
-        # VERIFY DEPLOYMENT
+        # ORDER SERVICE
         ###################################
-        for deploy in user-service order-service payment-service springboot-app
-        do
-          kubectl rollout status deployment/$deploy -n $NAMESPACE
-        done
+        helm upgrade --install order-service ./helm/order-service \
+          --namespace $NAMESPACE \
+          -f ./helm/values-$NAMESPACE.yaml \
+          --set image.tag=$SHA
+
+        ###################################
+        # PAYMENT SERVICE
+        ###################################
+        helm upgrade --install payment-service ./helm/payment-service \
+          --namespace $NAMESPACE \
+          -f ./helm/values-$NAMESPACE.yaml \
+          --set image.tag=$SHA
+
+        ###################################
+        # MONOLITH
+        ###################################
+        helm upgrade --install springboot-app ./helm/monolith \
+          --namespace $NAMESPACE \
+          -f ./helm/values-$NAMESPACE.yaml \
+          --set image.tag=$SHA
+
+        ###################################
+        # VERIFY
+        ###################################
+        kubectl rollout status deployment/user-service -n $NAMESPACE
+        kubectl rollout status deployment/order-service -n $NAMESPACE
+        kubectl rollout status deployment/payment-service -n $NAMESPACE
+        kubectl rollout status deployment/springboot-app -n $NAMESPACE
 
         helm list -n $NAMESPACE
