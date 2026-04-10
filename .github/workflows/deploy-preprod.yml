@@ -2,7 +2,7 @@ name: Deploy PreProd Environments
 
 on:
   workflow_dispatch:
-  
+
 env:
   ACR_NAME: tejaacr
   AKS_CLUSTER_NAME: teja-cluster
@@ -10,75 +10,99 @@ env:
 
 jobs:
   deploy:
-    #if: ${{ github.event.workflow_run.conclusion == 'success' }}
     if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
-        env: [dev,qa,staging]
+        env: [dev, qa, staging]
 
     steps:
     - uses: actions/checkout@v3
-    
+
+    ###################################
+    # LOGIN TO AZURE
+    ###################################
     - name: Login Azure
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+    ###################################
+    # INSTALL KUBELOGIN (IMPORTANT FIX)
+    ###################################
+    - name: Install kubelogin
+      run: |
+        curl -LO https://github.com/Azure/kubelogin/releases/latest/download/kubelogin-linux-amd64.zip
+        unzip kubelogin-linux-amd64.zip
+        sudo mv bin/linux_amd64/kubelogin /usr/local/bin/
+        kubelogin --version
+
+    ###################################
+    # CONNECT TO AKS (AAD ENABLED FIX)
+    ###################################
     - name: Connect AKS
       run: |
         az aks get-credentials \
           --resource-group $AKS_RESOURCE_GROUP \
           --name $AKS_CLUSTER_NAME \
-    
+          --overwrite-existing
+
+        kubelogin convert-kubeconfig -l azurecli
+
+    ###################################
+    # DEPLOY
+    ###################################
     - name: Deploy to ${{ matrix.env }}
       run: |
         set -e
-    
-        SHA=${{ github.event.workflow_run.head_sha }}
+
+        # FIX: workflow_dispatch has no workflow_run.head_sha
+        SHA=${GITHUB_SHA}
         NAMESPACE=${{ matrix.env }}
-    
+
         echo "🚀 Deploying to namespace: $NAMESPACE"
-    
+        echo "📦 Image tag (commit): $SHA"
+
         kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
-    
+
         helm dependency update ./helm/user-service
         helm dependency update ./helm/order-service
         helm dependency update ./helm/payment-service
         helm dependency update ./helm/monolith
-    
+
         ###################################
-        # DEPLOY USER SERVICE
+        # USER SERVICE
         ###################################
         helm upgrade --install user-service ./helm/user-service \
           --namespace $NAMESPACE \
           -f ./helm/values-$NAMESPACE.yaml \
           --set image.tag=$SHA
-    
+
         ###################################
-        # DEPLOY ORDER SERVICE
+        # ORDER SERVICE
         ###################################
         helm upgrade --install order-service ./helm/order-service \
           --namespace $NAMESPACE \
           -f ./helm/values-$NAMESPACE.yaml \
           --set image.tag=$SHA
-    
+
         ###################################
-        # DEPLOY PAYMENT SERVICE
+        # PAYMENT SERVICE
         ###################################
         helm upgrade --install payment-service ./helm/payment-service \
           --namespace $NAMESPACE \
           -f ./helm/values-$NAMESPACE.yaml \
           --set image.tag=$SHA
-    
+
         ###################################
-        # DEPLOY MONOLITH
+        # MONOLITH
         ###################################
         helm upgrade --install springboot-app ./helm/monolith \
           --namespace $NAMESPACE \
           -f ./helm/values-$NAMESPACE.yaml \
           --set image.tag=$SHA
-    
+
         ###################################
         # VERIFY
         ###################################
@@ -86,5 +110,5 @@ jobs:
         kubectl rollout status deployment/order-service -n $NAMESPACE
         kubectl rollout status deployment/payment-service -n $NAMESPACE
         kubectl rollout status deployment/springboot-app -n $NAMESPACE
-    
+
         helm list -n $NAMESPACE
