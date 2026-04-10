@@ -1,11 +1,12 @@
 name: Deploy PreProd Environments
 
 on:
-  workflow_run:
-    workflows: ["CI Build Pipeline"]
-    types:
-      - completed
-
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy"
+        required: true
+        default: "dev"
 env:
   ACR_NAME: tejaacr
   AKS_CLUSTER_NAME: teja-cluster
