@@ -8,10 +8,11 @@ hpa:
   maxReplicas: 5
   cpu: 50
 
-resources:
-  requests:
-    cpu: "100m"
-    memory: "128Mi"
-  limits:
-    cpu: "500m"
-    memory: "512Mi"
+global:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
