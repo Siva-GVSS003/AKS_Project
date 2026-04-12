@@ -9,3 +9,9 @@ image:
 container:
   name: user-container
   port: 8080
+
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  cpu: 50
