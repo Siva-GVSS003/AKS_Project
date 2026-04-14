@@ -21,6 +21,5 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.container.port }}
-          resources:
-            {{- toYaml .Values.resources | nindent 10 }}
+          
 {{- end }}
