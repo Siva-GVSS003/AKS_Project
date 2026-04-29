@@ -6,78 +6,76 @@ pool:
 
 variables:
   IMAGE_TAG: $(Build.BuildId)
-  ACR_SERVICE_CONNECTION: acr-connection
-  ACR_LOGIN_SERVER: your-acr-name.azurecr.io   # <-- replace this
+  ACR_NAME: <your-acr-name>.azurecr.io
 
-steps:
+stages:
 
-# =========================
-# Checkout code
-# =========================
-- checkout: self
+# =========================================
+# 🚀 STAGE 1: BUILD & PUSH (CI)
+# =========================================
+- stage: Build
+  displayName: Build and Push Images
+  jobs:
+  - job: BuildPush
+    steps:
 
-# =========================
-# USER SERVICE
-# =========================
-- task: Maven@3
-  displayName: Build user-service
-  inputs:
-    mavenPomFile: 'microservices/user-service/pom.xml'
-    goals: 'clean package'
-    publishJUnitResults: false
+    - checkout: self
 
-- task: Docker@2
-  displayName: Build & Push user-service
-  inputs:
-    command: buildAndPush
-    repository: user-service
-    dockerfile: microservices/user-service/Dockerfile
-    containerRegistry: $(ACR_SERVICE_CONNECTION)
-    buildContext: microservices/user-service
-    tags: |
-      $(IMAGE_TAG)
-      latest
+    # Login to ACR
+    - task: Docker@2
+      displayName: Login to ACR
+      inputs:
+        command: login
+        containerRegistry: acr-connection
 
-# =========================
-# ORDER SERVICE
-# =========================
-- task: Maven@3
-  displayName: Build order-service
-  inputs:
-    mavenPomFile: 'microservices/order-service/pom.xml'
-    goals: 'clean package'
-    publishJUnitResults: false
+    # Build JARs (IMPORTANT)
+    - script: |
+        cd microservices/user-service && mvn clean package -DskipTests
+        cd ../order-service && mvn clean package -DskipTests
+        cd ../payment-service && mvn clean package -DskipTests
+      displayName: Build JAR files
 
-- task: Docker@2
-  displayName: Build & Push order-service
-  inputs:
-    command: buildAndPush
-    repository: order-service
-    dockerfile: microservices/order-service/Dockerfile
-    containerRegistry: $(ACR_SERVICE_CONNECTION)
-    buildContext: microservices/order-service
-    tags: |
-      $(IMAGE_TAG)
-      latest
+    # Build & Push USER
+    - task: Docker@2
+      displayName: Build & Push user-service
+      inputs:
+        command: buildAndPush
+        repository: user-service
+        dockerfile: microservices/user-service/Dockerfile
+        containerRegistry: acr-connection
+        tags: |
+          $(IMAGE_TAG)
 
-# =========================
-# PAYMENT SERVICE
-# =========================
-- task: Maven@3
-  displayName: Build payment-service
-  inputs:
-    mavenPomFile: 'microservices/payment-service/pom.xml'
-    goals: 'clean package'
-    publishJUnitResults: false
+    # Build & Push ORDER
+    - task: Docker@2
+      displayName: Build & Push order-service
+      inputs:
+        command: buildAndPush
+        repository: order-service
+        dockerfile: microservices/order-service/Dockerfile
+        containerRegistry: acr-connection
+        tags: |
+          $(IMAGE_TAG)
 
-- task: Docker@2
-  displayName: Build & Push payment-service
-  inputs:
-    command: buildAndPush
-    repository: payment-service
-    dockerfile: microservices/payment-service/Dockerfile
-    containerRegistry: $(ACR_SERVICE_CONNECTION)
-    buildContext: microservices/payment-service
-    tags: |
-      $(IMAGE_TAG)
-      latest
+    # Build & Push PAYMENT
+    - task: Docker@2
+      displayName: Build & Push payment-service
+      inputs:
+        command: buildAndPush
+        repository: payment-service
+        dockerfile: microservices/payment-service/Dockerfile
+        containerRegistry: acr-connection
+        tags: |
+          $(IMAGE_TAG)
+
+    # Save IMAGE TAG as artifact
+    - script: |
+        echo $(IMAGE_TAG) > image-tag.txt
+      displayName: Save Image Tag
+
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: image-tag.txt
+        artifact: image-info
+        publishLocation: pipeline
+
