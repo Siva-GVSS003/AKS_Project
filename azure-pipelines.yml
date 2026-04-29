@@ -5,19 +5,19 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  IMAGE_TAG: $(Build.SourceVersion)
+  IMAGE_TAG: $(Build.BuildId)
   ACR_SERVICE_CONNECTION: acr-connection
-  ACR_LOGIN_SERVER: tejaacr.azurecr.io   # <-- replace this
+  ACR_LOGIN_SERVER: your-acr-name.azurecr.io   # <-- replace this
 
 steps:
 
 # =========================
-# 1. Checkout code
+# Checkout code
 # =========================
 - checkout: self
 
 # =========================
-# 2. Build USER SERVICE
+# USER SERVICE
 # =========================
 - task: Maven@3
   displayName: Build user-service
@@ -36,9 +36,10 @@ steps:
     buildContext: microservices/user-service
     tags: |
       $(IMAGE_TAG)
+      latest
 
 # =========================
-# 3. Build ORDER SERVICE
+# ORDER SERVICE
 # =========================
 - task: Maven@3
   displayName: Build order-service
@@ -57,9 +58,10 @@ steps:
     buildContext: microservices/order-service
     tags: |
       $(IMAGE_TAG)
+      latest
 
 # =========================
-# 4. Build PAYMENT SERVICE
+# PAYMENT SERVICE
 # =========================
 - task: Maven@3
   displayName: Build payment-service
@@ -78,3 +80,4 @@ steps:
     buildContext: microservices/payment-service
     tags: |
       $(IMAGE_TAG)
+      latest
