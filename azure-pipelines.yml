@@ -1,0 +1,53 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  IMAGE_TAG: $(Build.SourceVersion)
+
+steps:
+
+# Checkout code
+- checkout: self
+
+# Login to Azure Container Registry
+- task: Docker@2
+  displayName: Login to ACR
+  inputs:
+    command: login
+    containerRegistry: acr-connection   # (we will create this next)
+
+# Build & Push USER service
+- task: Docker@2
+  displayName: Build & Push user-service
+  inputs:
+    command: buildAndPush
+    repository: user-service
+    dockerfile: microservices/user-service/Dockerfile
+    containerRegistry: acr-connection
+    tags: |
+      $(IMAGE_TAG)
+
+# Build & Push ORDER service
+- task: Docker@2
+  displayName: Build & Push order-service
+  inputs:
+    command: buildAndPush
+    repository: order-service
+    dockerfile: microservices/order-service/Dockerfile
+    containerRegistry: acr-connection
+    tags: |
+      $(IMAGE_TAG)
+
+# Build & Push PAYMENT service
+- task: Docker@2
+  displayName: Build & Push payment-service
+  inputs:
+    command: buildAndPush
+    repository: payment-service
+    dockerfile: microservices/payment-service/Dockerfile
+    containerRegistry: acr-connection
+    tags: |
+      $(IMAGE_TAG)
