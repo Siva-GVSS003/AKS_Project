@@ -6,7 +6,7 @@ pool:
 
 variables:
   IMAGE_TAG: $(Build.BuildId)
-  ACR_NAME: <your-acr-name>.azurecr.io
+  ACR_NAME: tejaacr.azurecr.io
 
 stages:
 
