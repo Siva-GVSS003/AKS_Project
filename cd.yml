@@ -1,0 +1,53 @@
+trigger: none   # IMPORTANT: no auto trigger
+
+resources:
+  pipelines:
+  - pipeline: buildPipeline
+    source: Siva-GVSS003.AKS_Project
+    trigger: true   # auto-trigger after CI success
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  ACR_NAME: tejaacr.azurecr.io
+
+steps:
+
+# Download artifact from CI pipeline
+- task: DownloadPipelineArtifact@2
+  inputs:
+    source: 'pipeline'
+    pipeline: buildPipeline
+    artifact: image-info
+    path: .
+
+# Read IMAGE TAG
+- script: |
+    IMAGE_TAG=$(cat image-tag.txt)
+    echo "##vso[task.setvariable variable=IMAGE_TAG]$IMAGE_TAG"
+    echo "Deploying image tag: $IMAGE_TAG"
+  displayName: Read Image Tag
+
+# Deploy to AKS
+- task: Kubernetes@1
+  displayName: Deploy to AKS
+  inputs:
+    connectionType: 'Kubernetes Service Connection'
+    kubernetesServiceEndpoint: aks-connection
+    namespace: dev
+    command: login
+
+# Update images dynamically
+- script: |
+    kubectl set image deployment/user-service user-service=$(ACR_NAME)/user-service:$(IMAGE_TAG) -n dev
+    kubectl set image deployment/order-service order-service=$(ACR_NAME)/order-service:$(IMAGE_TAG) -n dev
+    kubectl set image deployment/payment-service payment-service=$(ACR_NAME)/payment-service:$(IMAGE_TAG) -n dev
+  displayName: Update Deployments
+
+# Verify rollout
+- script: |
+    kubectl rollout status deployment/user-service -n dev
+    kubectl rollout status deployment/order-service -n dev
+    kubectl rollout status deployment/payment-service -n dev
+  displayName: Verify Deployment
